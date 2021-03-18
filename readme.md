@@ -70,7 +70,7 @@
     port = 9501
 
 ### 启动
-    php bin/index.php start 
+    php bin/JkdYaf.php start 
     php bin/JkdYaf.php start -d  //守护进程
     
 ### nginx 配置

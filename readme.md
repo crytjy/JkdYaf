@@ -115,4 +115,4 @@
 
 
 ## 打赏
-![avatar](./yaf/public/JkdYaf-wechat.png)
+<img src="./yaf/public/JkdYaf-wechat.png" alt="基于 YAF + SWOOLE 高性能API框架" width="100" height="100" align="bottom" />

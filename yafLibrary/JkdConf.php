@@ -6,7 +6,14 @@
 class JkdConf
 {
 
-    public static function get($name)
+    /**
+     * 获取配置
+     *
+     * @param string $name 配置文件名称
+     * @param false $isEnv 是否区分环境
+     * @return false|\Yaf\Config\Ini
+     */
+    public static function get($name, $isEnv = true)
     {
         if (!$name)
             return false;
@@ -15,12 +22,19 @@ class JkdConf
         $fileName = $list[0];
         $key = $list[1] ?? '';
 
-//        $confPath = Yaf\Application::app()->getConfig()->confPath;   //配置路径
         $config = new Yaf\Config\Ini(CONF_PATH . '/' . $fileName . '.ini');
-        if ($key) {
-            return $config[environ()]->get($key);
+        if ($isEnv != true) {
+            if ($key) {
+                return $config->get($key);
+            } else {
+                return $config;
+            }
         } else {
-            return $config[environ()];
+            if ($key) {
+                return $config[environ()]->get($key);
+            } else {
+                return $config[environ()];
+            }
         }
     }
 

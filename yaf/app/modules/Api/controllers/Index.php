@@ -1,31 +1,24 @@
 <?php
+/**
+ * @author JKD
+ * @date 2021年08月03日 23:50
+ */
 
 use app\services\Api\Index as ApiIndex;
 
 class IndexController extends BaseController
 {
-
     protected $serviceIndex;
+
     public function init()
     {
         parent::init();
         $this->serviceIndex = new ApiIndex($this->JkdRequest);
     }
 
+
     public function indexAction()
     {
-        \Response::Success('Hello API');
+        return $this->serviceIndex->index();
     }
-
-
-    public function getAllUserAction()
-    {
-        return $this->serviceIndex->getAllUser();
-    }
-
-    public function getTokenAction()
-    {
-        return $this->serviceIndex->getToken();
-    }
-
 }

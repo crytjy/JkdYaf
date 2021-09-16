@@ -15,7 +15,7 @@ interface DbInterface
 
     function transaction($query); //事务
 
-    function getOne($query); //执行sql语句，只得到一条记录
+    function getOne($query); //执行sql语句，获取单个字段数据
 
     function getRow($query); //从结果集中取得一行作为关联数组
 
@@ -23,7 +23,11 @@ interface DbInterface
 
     function getAll($query); //返回一个N行N列的结果集
 
-    function insert(); //返回上一次插入记录的ID;
+    function insert($table, $data); //返回上一次插入记录的ID;
+
+    function update($table, $data, $where); //更新
+
+    function delete($table, $where); //删除
 
     function close(); //关闭数据库连接
 }

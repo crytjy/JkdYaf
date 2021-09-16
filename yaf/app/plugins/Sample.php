@@ -47,7 +47,7 @@ class SamplePlugin extends Yaf\Plugin_Abstract
 
 
     /**
-     *    分发之前触发
+     * 分发之前触发
      *
      * @param \Yaf\Request_Abstract $request
      * @param \Yaf\Response_Abstract $response

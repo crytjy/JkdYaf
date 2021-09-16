@@ -13,7 +13,7 @@ class ErrorController extends \Yaf\Controller_Abstract
     public function errorAction($exception)
     {
         if ($exception->getCode() != 676) {
-            JkdLog::error($exception->getMessage());
+            JkdLog::error($exception);
         }
     }
 }

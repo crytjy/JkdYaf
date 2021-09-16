@@ -11,11 +11,10 @@ class JkdLog
      *
      * @param $message //信息
      * @param array $content //数据
-     * @param string $channel //通道
      */
-    public static function info($message, $content = [], $channel = '')
+    public static function info($message, $content = [])
     {
-        self::writeLog($message, $content, $channel);
+        self::writeLog($message, $content, 'info');
     }
 
 
@@ -44,6 +43,19 @@ class JkdLog
 
 
     /**
+     * 指定通道信息
+     *
+     * @param string $channel //通道
+     * @param $message //信息
+     * @param array $content //数据
+     */
+    public static function channel($channel, $message, $content = [])
+    {
+        self::writeLog($message, $content, $channel);
+    }
+
+
+    /**
      * 写日志
      *
      * @param string $message
@@ -56,7 +68,7 @@ class JkdLog
             $content = json_encode($content);
         }
         
-        $logPath = \Yaf\Registry::get('config')->logPath;   //日志路径
+        $logPath = \Yaf\Registry::get('config')->log['path'] ?? APP_PATH . '/runtime/log/';   //日志路径
         $dir = $logPath . $channel;
         if (!is_dir($dir)) {
             @mkdir($dir, 0777);

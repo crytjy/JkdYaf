@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * @name Bootstrap
  * @author root
@@ -17,11 +16,10 @@ class Bootstrap extends Yaf\Bootstrap_Abstract
      */
     public function _initLoader()
     {
-        Yaf\Loader::import(APP_PATH . '/app/function/helper.php');
-        Yaf\Loader::import(APP_PATH . '/app/function/common.php');
+        Yaf\Loader::import(Lib_PATH . '/Common/Helper.php');
 
         //加载模型父类
-        Yaf\Loader::import(APP_PATH . '/app/models/Base.php');
+        Yaf\Loader::import(Lib_PATH . '/JkdBaseModel.php');
     }
 
     public function _initConfig()
@@ -34,17 +32,13 @@ class Bootstrap extends Yaf\Bootstrap_Abstract
         $routeConfig = \JkdConf::get('route');
         Yaf\Registry::set('routeConf', $routeConfig);
 
-        //关闭视图
-        Yaf\Dispatcher::getInstance()->autoRender(FALSE);
-    }
+        //保存redisKey
+        $redisKeyConfig = \JkdConf::get('redisKey');
+        Yaf\Registry::set('redisKeyConf', $redisKeyConfig);
 
-    // 载入redis
-    public function _initRedis()
-    {
-//        $arrConfig = Yaf\Registry::get('config')->redis;
-//        $option = ['host' => $arrConfig->host, 'port' => $arrConfig->port, 'password' => $arrConfig->password];
-//        $redis = new \Cache\Redis($option);
-//        Yaf\Registry::set('redis', $redis);
+        //保存redis配置
+        $redisConfig = \JkdConf::get('redis');
+        Yaf\Registry::set('redisConf', $redisConfig);
     }
 
     public function _initPlugin(Yaf\Dispatcher $dispatcher)
@@ -58,6 +52,50 @@ class Bootstrap extends Yaf\Bootstrap_Abstract
     public function _initRoute(Yaf\Dispatcher $dispatcher)
     {
         //在这里注册自己的路由协议,默认使用简单路由
+    }
+
+
+    /**
+     * 加载service类
+     */
+    public function _initServiceLoader()
+    {
+        $firstPath = APP_PATH . '/app/services/';
+        $data = getDirContent($firstPath);
+        foreach ($data as $da) {
+            if (is_file($da)) {
+                Yaf\Loader::import($firstPath . $da);
+            } else {
+                $thisPath = $firstPath . $da;
+                $files = getDirContent($thisPath);
+                foreach ($files as $file) {
+                    Yaf\Loader::import($thisPath . '/' . $file);
+                }
+            }
+        }
+        $data = null;
+    }
+
+
+    /**
+     * 加载crontab类
+     */
+    public function _initCrontabLoader()
+    {
+        $firstPath = APP_PATH . '/app/crontab/';
+        $data = getDirContent($firstPath);
+        foreach ($data as $da) {
+            if (is_file($firstPath . $da)) {
+                Yaf\Loader::import($firstPath . $da);
+            } else {
+                $thisPath = $firstPath . $da;
+                $files = getDirContent($thisPath);
+                foreach ($files as $file) {
+                    Yaf\Loader::import($thisPath . '/' . $file);
+                }
+            }
+        }
+        $data = null;
     }
 
 }

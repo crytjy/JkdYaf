@@ -17,20 +17,7 @@ class Mysql implements DbInterface
     {
         try {
             $this->_dbh = new \PDO('mysql:dbname=' . $dbname . ';host=' . $dbhost . ';port=' . $dbport . ';charset=' . $dbcharset, $username, $password, array(\PDO::ATTR_PERSISTENT => true));
-//            mysqli_set_charset($this->_dbh, 'utf8');
-
-
-//            if ((array)$this->_dbh && $this->_dbh) {
-//                mysqli_set_charset($this->_dbh, $dbcharset);
-//            } else {
-//                \JkdLog::error($this->_dbh);
-//                die();
-//            }
         } catch (PDOException $e) {
-//            echo '<pre>';
-//            echo '<b>Connection failed:</b> ' . $e->getMessage();
-//            die();
-
             \JkdLog::error($e->getMessage());
             die();
         }
@@ -46,13 +33,8 @@ class Mysql implements DbInterface
         $_db_usr = $db_config->username;
         $_db_pwd = $db_config->password;
 
-        $idx = md5($_db_host . $_db_name);
-
-        if (!isset(self::$_instances[$idx])) {
-            self::$_instances[$idx] = new Mysql($_db_host, $_db_port, $_db_usr, $_db_pwd, $_db_name, $_db_charset);
-        }
-
-        return self::$_instances[$idx];
+        self::$_instances = new Mysql($_db_host, $_db_port, $_db_usr, $_db_pwd, $_db_name, $_db_charset);
+        return self::$_instances;
     }
 
 
@@ -152,32 +134,20 @@ class Mysql implements DbInterface
     /**
      * 新增
      *
-     * @param null $table
-     * @param null $data
-     * @param bool $returnStr
+     * @param string $table
+     * @param array $data
      * @return bool|string
      */
-    function insert($table = null, $data = null, $returnStr = false)
+    function insert($table, $data)
     {
         $fields = array_keys($data);
         $marks = array_fill(0, count($fields), '?');
 
         $sql = "INSERT INTO $table (`" . implode('`,`', $fields) . "`) VALUES (" . implode(", ", $marks) . " )";
-        if ($returnStr) {
-            $fields = array_keys($data);
-            $marks = array_values($data);
-
-            foreach ($marks as $k => $v) {
-                if (!is_numeric($v))
-                    $marks[$k] = '\'' . $v . '\'';
-            }
-            $sql = "INSERT INTO $table (`" . implode('`,`', $fields) . "`) VALUES (" . implode(", ", $marks) . " )";
-            return $sql;
-        }
         $this->execute($sql, array_values($data));
-        $last_insert_id = $this->_dbh->lastInsertId();
-        if ($last_insert_id)
-            return $last_insert_id;
+        $lastInsertId = $this->_dbh->lastInsertId();
+        if ($lastInsertId)
+            return $lastInsertId;
         else
             return true;
     }
@@ -201,14 +171,14 @@ class Mysql implements DbInterface
     /**
      * 更新
      *
-     * @param $table
-     * @param $data
-     * @param $where
+     * @param string $table
+     * @param array $data
+     * @param array $where
      * @return bool
      */
     function update($table, $data, $where)
     {
-        $values = $bits = $wheres = array();
+        $values = $bits = $wheres = [];
         foreach ($data as $k => $v) {
             $bits[] = "`$k` = ?";
             $values[] = $v;

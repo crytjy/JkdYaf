@@ -3,9 +3,9 @@
 /**
  * 响应类
  *
- * Class Response
+ * Class JkdResponse
  */
-class Response
+class JkdResponse
 {
 
     /**
@@ -28,8 +28,9 @@ class Response
      * @param string $message
      * @param int $status
      * @param int $code
+     * @throws Exception
      */
-    public static function Success($data = "", $message = "成功", $status = 200, $code = 1)
+    public static function Success($data = "", $message = "success", $status = 200, $code = 1)
     {
         $outArray = ['code' => $code, 'message' => $message, 'data' => $data, 'status' => $status];
         self::output($outArray);
@@ -42,8 +43,24 @@ class Response
      * @param string $message
      * @param int $status
      * @param int $code
+     * @throws Exception
      */
-    public static function Fail($message = "失败", $status = 200, $code = 0)
+    public static function Fail($message = "fail", $status = 200, $code = 2)
+    {
+        $outArray = ['code' => $code, 'message' => $message, 'status' => $status];
+        self::output($outArray);
+    }
+
+
+    /**
+     * 错误返回json
+     *
+     * @param string $message
+     * @param int $status
+     * @param int $code
+     * @throws Exception
+     */
+    public static function Error($message = "500 System error！", $status = 500, $code = 2)
     {
         $outArray = ['code' => $code, 'message' => $message, 'status' => $status];
         self::output($outArray);

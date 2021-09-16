@@ -20,14 +20,14 @@ class Jkd
         return "\033[" . $color . "m" . $str . "\033[0m";
     }
 
-    public static function start($managerPid, $masterPid, $ip, $port, $daemonize)
+    public static function start($ip, $port, $daemonize)
     {
         self::getTitle();
         $str = 'JkdYaf Start Success' . PHP_EOL;
         $str = self::setFont($str, self::GREEN_FONT);
         echo $str;
-        self::getComponents($managerPid, $masterPid, $ip, $port);
-        echo self::setFont('>>> Feedback:', self::YELLOW_FONT) . "\033[4m" . ' https://github.com/crytjy/JkdYaf.git' . "\033[0m" . PHP_EOL;
+        self::getComponents($ip, $port, $daemonize);
+//        echo '[' . date('Y-m-d H:i:s') . '] [TRACE] Swoole is running, see "ps -ef|grep JkdYaf".' . PHP_EOL;
         if ($daemonize) {
             echo '[' . date('Y-m-d H:i:s') . '] [TRACE] Swoole is running in daemon mode, see "ps -ef|grep JkdYaf".' . PHP_EOL;
         } else {
@@ -35,6 +35,11 @@ class Jkd
         }
     }
 
+    public static function isRunning($str)
+    {
+        echo self::setFont($str . PHP_EOL, self::GREEN_FONT);
+        return true;
+    }
 
     private static function getTitle()
     {
@@ -50,21 +55,24 @@ class Jkd
     }
 
 
-    private static function getComponents($managerPid, $masterPid, $ip, $port)
+    private static function getComponents($ip, $port, $daemonize)
     {
         $phpVer = PHP_VERSION;  //php版本
-        $swooleVer = SWOOLE_VERSION;  //swoole版本
-        $yafVer = Yaf\VERSION;        //yaf版本
-        $yacVer = phpversion('yac');        //yac版本
+        $swooleVer = SWOOLE_VERSION;    //swoole版本
+        $yafVer = Yaf\VERSION;  //yaf版本
+        $yacVer = phpversion('yac');    //yac版本
+        $jkdYarVer = JKDYAF_VERSION;    //JkdYaf版本
 
         $str1 = self::setFont('>>> Components', self::YELLOW_FONT);
         echo $str1 . PHP_EOL;
         $list = [
             ['PHP', $phpVer, '7.0 +'],
             ['Swoole', $swooleVer, '4.5 +'],
-            ['YAC', $yacVer, '2.3 +'],
             ['YAF', $yafVer, '3.3 +'],
         ];
+        if ($yacVer) {
+            $list[] = ['YAC', $yacVer, '2.3 +'];
+        }
 
         $table = new \ConsoleTable(CONSOLE_TABLE_ALIGN_LEFT, CONSOLE_TABLE_BORDER_ASCII);
         echo $table->fromArray(
@@ -75,8 +83,8 @@ class Jkd
 
         $table = new \ConsoleTable(CONSOLE_TABLE_ALIGN_LEFT, CONSOLE_TABLE_BORDER_ASCII);
         echo $table->fromArray(
-            ['Protocol', 'Manager Pid', 'Master Pid', 'Listen At'],
-            [['Main HTTP', $managerPid, $masterPid, $ip . ':' . $port]]
+            ['Protocol', 'Listen At', 'Daemon Mode', 'Version'],
+            [['Main HTTP', $ip . ':' . $port, $daemonize ? 'On' : 'Off', $jkdYarVer]]
         );
         echo PHP_EOL;
     }

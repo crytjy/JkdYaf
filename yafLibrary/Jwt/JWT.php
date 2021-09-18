@@ -1,6 +1,6 @@
 <?php
 
-namespace JWT;
+namespace Jwt;
 
 use \DomainException;
 use \InvalidArgumentException;

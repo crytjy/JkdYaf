@@ -73,7 +73,7 @@ yac.compress_threshold = '-1'
 yac.enable_cli = 1
 ```
 
-?> 修改后需要重启php `service php-fpm restart`
+> 修改后需要重启php `service php-fpm restart`
 
 ### app.ini配置
 
@@ -161,4 +161,4 @@ php bin/JkdYaf.php start -d  //守护进程
 
 浏览器访问 `http://localhost:12222/api/index`
 
-?> {"code":1,"message":"success","data":"Hello JkdYaf !"}
+> {"code":1,"message":"success","data":"Hello JkdYaf !"}

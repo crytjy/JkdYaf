@@ -77,7 +77,7 @@ class JkdLog
 
         $str = '[' . date('Y-m-d H:i:s') . ']' . ' ' . $message . ' ' . $content . PHP_EOL;
 
-        file_put_contents($dir . '/' . $filename, $str, FILE_APPEND | LOCK_EX);
+        error_log($str, 3, $dir . '/' . $filename);
     }
 
 

@@ -73,8 +73,6 @@ yac.compress_threshold = '-1'
 yac.enable_cli = 1
 ```
 
-> 修改后需要重启php `service php-fpm restart`
-
 ### app.ini配置
 
 项目conf/app.ini

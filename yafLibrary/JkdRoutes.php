@@ -34,18 +34,12 @@ class JkdRoutes
         // 验证是否需要登录
         if ($isAuth == 'TRUE' || $isAuth == 'true') {
             $token = $params['token'] ?? '';
+            if (!$token) {
+                \JkdResponse::Fail('缺失token');
+            }
             $userKey = \Auth\JwtAuth::checkToken($token);
-
             if (!$userKey) {
                 \JkdResponse::Fail('token异常');
-            }
-            $info = \User\UserRedis::get($userKey);
-            if (!$info) {
-                \JkdResponse::Fail('找不到该用户');
-            }
-
-            if (isset($info['status']) && $info['status'] != 1) {
-                \JkdResponse::Fail('账号异常');
             }
         }
     }
@@ -58,7 +52,7 @@ class JkdRoutes
     {
         //验证请求时的时间戳，不能超过1分钟
         if (!isset($params['ts']) || $params['ts'] > time() || (time() - $params['ts'] > 6000)) {
-            \Response::Fail('Exception request');
+            \JkdResponse::Fail('Exception request');
         }
 
         if (!isset($params['sign'])) {

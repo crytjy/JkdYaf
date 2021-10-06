@@ -169,11 +169,6 @@ class HttpServer
         if ($requestRoute) {
             $yafRequest = new Yaf\Request\Http($requestRoute);
 
-            $configArr = Yaf\Application::app()->getConfig()->toArray();
-            if (!empty($configArr['application']['baseUri'])) { //set base_uri
-                $yafRequest->setBaseUri($configArr['application']['baseUri']);
-            }
-
             //关闭视图
             Yaf\Dispatcher::getInstance()->autoRender(FALSE);
             $this->app->getDispatcher()->dispatch($yafRequest);

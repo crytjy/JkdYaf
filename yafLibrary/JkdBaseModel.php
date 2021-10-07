@@ -113,18 +113,5 @@ class JkdBaseModel
     {
         return $this->db->update($this->table, $isFillFilter == true ? array_only($data, $this->fillAble) : $data, $where);
     }
-    
-
-    /**
-     * 执行sql
-     *
-     * @param $sql
-     * @return mixed|string
-     */
-    public function execute($sql)
-    {
-        $res = $this->db->getAll($sql);
-        return $res ?? '';
-    }
 
 }

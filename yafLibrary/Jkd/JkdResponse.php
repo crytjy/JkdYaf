@@ -1,5 +1,7 @@
 <?php
 
+namespace Jkd;
+
 /**
  * 响应类
  *
@@ -14,10 +16,14 @@ class JkdResponse
      * @param $array
      * @throws Exception
      */
-    public static function output($array)
+    public static function output($array, $isException = false)
     {
         echo json_encode($array);
-        throw new Exception('JkdReturn', 676);
+        if ($isException) {
+            throw new \Exception('JkdReturn', 676);
+        } else {
+            return true;
+        }
     }
 
 
@@ -33,7 +39,7 @@ class JkdResponse
     public static function Success($data = "", $message = "success", $status = 200, $code = 1)
     {
         $outArray = ['code' => $code, 'message' => $message, 'data' => $data, 'status' => $status];
-        self::output($outArray);
+        return self::output($outArray);
     }
 
 
@@ -48,7 +54,7 @@ class JkdResponse
     public static function Fail($message = "fail", $status = 200, $code = 2)
     {
         $outArray = ['code' => $code, 'message' => $message, 'status' => $status];
-        self::output($outArray);
+        return self::output($outArray, true);
     }
 
 
@@ -63,7 +69,7 @@ class JkdResponse
     public static function Error($message = "500 System error！", $status = 500, $code = 2)
     {
         $outArray = ['code' => $code, 'message' => $message, 'status' => $status];
-        self::output($outArray);
+        return self::output($outArray, true);
     }
 
 }

@@ -5,9 +5,9 @@
  * Class PreventDuplication
  */
 
-namespace Common;
+namespace Jkd;
 
-class PreventDuplication
+class JkdPreventDuplication
 {
 
     /**
@@ -23,6 +23,7 @@ class PreventDuplication
         $key = 'PREVENTDUPLICATION' . $type;
         $rs = $redis->set($key, 1, ['nx', 'ex' => $ttl]);
 
+        $redisPool->put();
         return $rs;
     }
 

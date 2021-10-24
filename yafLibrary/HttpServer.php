@@ -4,12 +4,11 @@ include __DIR__ . "/bin/Jkd.php";
 
 use Swoole\Coroutine\Http\Server;
 use Swoole\Process;
-use Swoole\Process\Manager;
 
+define('JKDYAF_VERSION', '2.1.3');
 
 class HttpServer
 {
-
     private $jkdYafConfig;
     private $app;
 
@@ -33,12 +32,13 @@ class HttpServer
 
 
     /**
-     * @param bool $daemonize //守护进程  true|false
-     *
+     * @param string $argv2
      * @return HttpServer|null
      */
-    public static function getInstance($daemonize = false)
+    public static function getInstance($argv2 = '')
     {
+        $daemonize = ($argv2 ?? '') == '-d' ? true : false; //守护进程  true|false
+
         if (empty(self::$instance) || !(self::$instance instanceof HttpServer)) {
             self::$instance = new self();
             self::$daemonize = $daemonize;
@@ -91,7 +91,7 @@ class HttpServer
         file_put_contents($this->jkdYafConfig['common']['worker_pid_file'], '');
         file_put_contents($this->jkdYafConfig['common']['tasker_pid_file'], '');
         // 初始化连接池日志文件
-        $this->createRedisPoolLog();
+        $this->createPoolLog();
 
         $processId = $pool->master_pid . ':' . $workerId;
         if ($workerId >= $this->jkdYafConfig['server']['worker_num']) {
@@ -110,11 +110,12 @@ class HttpServer
         $server = new Server($this->ip, $this->port, false, true);
         //实例化yaf
         $this->app = new Yaf\Application(APP_PATH . "/conf/app.ini");
-
         $this->app->bootstrap();
 
         // 启动Redis连接池
         $this->startRedis($workerId);
+        // 启动Mysql连接池
+        $this->startMysql($workerId);
 
         //开启定时器
         if ($workerId == 0) {
@@ -124,10 +125,10 @@ class HttpServer
 //        set_exception_handler(function (Exception $e) {
 //            \JkdLog::error($e);
 //        });
-//
+
 //        捕获错误
         set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-            \JkdLog::error([
+            \Log\JkdLog::error([
                 'Code:' => $errno,
                 'Msg:' => $errstr,
                 'File:' => $errfile,
@@ -136,7 +137,9 @@ class HttpServer
         }, E_ALL);
 
         $server->handle('/api/', [$this, 'onRequest']);
+        $server->handle('/admin/', [$this, 'onRequest']);
 
+        \Log\JkdLog::channel('memory', '初始化', memory_get_usage());
         $server->start();
     }
 
@@ -149,6 +152,9 @@ class HttpServer
 
     public function onRequest(Swoole\Http\Request $request, Swoole\Http\Response $response)
     {
+        \Log\JkdLog::channel('memory', '请求前', memory_get_usage());
+//        \xhprof_enable(XHPROF_FLAGS_MEMORY + XHPROF_FLAGS_CPU+XHPROF_FLAGS_NO_BUILTINS);
+
         ini_set('memory_limit', '-1');
         ini_set('display_errors', 'On');    //是否显示错误
         ini_set('error_reporting', E_ALL);  //设置错误的报告级别
@@ -163,18 +169,23 @@ class HttpServer
         Yaf\Registry::set('SWOOLE_HTTP_REQUEST', $request);
         Yaf\Registry::set('SWOOLE_HTTP_RESPONSE', $response);
 
-        ob_start();
-        $route = $request->server['request_uri'] ?? '';
-        $requestRoute = \Yaf\Registry::get('routeConf')->$route['url'] ?? '';
-        if ($requestRoute) {
+        $requestRoute = $request->server['request_uri'] ?? '';
+        $requestMethod = $request->server['request_method'] ?? '';
+        $requestRouteData = \Route\JkdRoute::get()->getRoute($requestRoute);
+        $requestRoute = $requestRouteData['action'] ?? '';
+        $needMethod = $requestRouteData['method'] ?? '';
+        $needMethod = strtoupper($needMethod);
+        if ($requestRoute && $needMethod == $requestMethod) {
+            ob_start();
             $yafRequest = new Yaf\Request\Http($requestRoute);
+            Yaf\Registry::set('YAF_HTTP_REQUEST', $yafRequest);
 
             //关闭视图
             Yaf\Dispatcher::getInstance()->autoRender(FALSE);
             $this->app->getDispatcher()->dispatch($yafRequest);
-
             $result = ob_get_contents();
             ob_end_clean();
+
             //返回数据处理
             $result = $result ? json_decode($result, true) : [];
         } else {
@@ -188,6 +199,13 @@ class HttpServer
         }
         $response->status($status);
         $response->end(json_encode($result));
+        \Log\JkdLog::channel('memory', '请求后', memory_get_usage());
+//        $xhprof_data = \xhprof_disable();
+
+//        include_once  '/www/xhprof/xhprof_lib/utils/xhprof_lib.php';
+//        include_once  '/www/xhprof/xhprof_lib/utils/xhprof_runs.php';
+//        $xhprof_runs = new \XHProfRuns_Default();
+//        $run_id = $xhprof_runs->save_run($xhprof_data, $this->appName);
     }
 
 
@@ -223,34 +241,22 @@ class HttpServer
 
 
     /**
-     * 读取Redis连接数日志
-     *
-     * @param bool $status 是否用于初始化
-     * @return false|int|mixed
+     * 初始化连接数日志
      */
-    private function createRedisPoolLog($status = true)
+    private function createPoolLog()
     {
         //Redis连接数
         $path = APP_PATH . '/runtime/pool/redis_pool_num.count';
-        // 清空并创建
-        if ($status) {
-            return file_put_contents($path, '{}');
-        }
-        $json = file_get_contents($path);
-        $array = [];
-        if ($json) {
-            $array = json_decode($json, true);
-        }
-        $redis_pool_num = 0;
-        foreach ($array as $v) {
-            $redis_pool_num += $v;
-        }
-        return $redis_pool_num;
+        file_put_contents($path, '{}');
+
+        //Mysql连接数
+        $path = APP_PATH . '/runtime/pool/mysql_pool_num.count';
+        file_put_contents($path, '{}');
     }
 
 
     /**
-     * 打开Redis连接池·
+     * 打开Redis连接池
      *
      * @param $workerId
      */
@@ -264,33 +270,25 @@ class HttpServer
 
 
     /**
+     * 打开MYsql连接池
+     *
+     * @param $workerId
+     */
+    private function startMysql($workerId)
+    {
+        // 启动数据库连接池
+        \Pool\JkdMysqlPool::run()->init();
+        // 启动连接池检测定时器
+        \Pool\JkdMysqlPool::run()->timingRecovery($workerId);
+    }
+
+
+    /**
      * 开启定时任务
      */
     private function startCron($masterPid)
     {
-        \JkdCron::start($masterPid, $this->jkdYafConfig['common']['timer_pid_file']);
-    }
-
-
-    private function ifRun($bf = 0)
-    {
-        $clsname = APP_PATH . '/bin/JkdYaf.php';
-        $logFile = APP_PATH . '/runtime/' . $this->appName . '_run.txt';
-        $str = shell_exec("/bin/grep -c '" . $clsname . "' ");
-
-        if ($bf > 0) {
-            if ($str >= $bf) {
-                return 1;
-            } else {
-                return 0;
-            }
-        } else {
-            if ($str >= 2) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
+        \Cron\JkdCron::start($masterPid, $this->jkdYafConfig['common']['timer_pid_file']);
     }
 
 }

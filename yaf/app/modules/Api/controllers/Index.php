@@ -4,21 +4,20 @@
  * @date 2021年08月03日 23:50
  */
 
-use app\services\Api\Index as ApiIndex;
-
-class IndexController extends BaseController
+class IndexController extends \Jkd\JkdBaseController
 {
-    protected $serviceIndex;
 
-    public function init()
-    {
-        parent::init();
-        $this->serviceIndex = new ApiIndex($this->JkdRequest);
-    }
-
-
+    /**
+     * Index
+     *
+     * @AopBefore(Com\TestAop, test1)
+     * @AopAfter(Com\TestAop, test2)
+     * @AopAround(Com\TestAop, test3)
+     *
+     * @return mixed
+     */
     public function indexAction()
     {
-        return $this->serviceIndex->index();
+        return $this->JkdService->index();
     }
 }

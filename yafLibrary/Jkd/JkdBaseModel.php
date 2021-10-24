@@ -1,24 +1,25 @@
 <?php
-
 /**
  * 模型类
  *
  * Class JkdBaseModel
  */
+namespace Jkd;
 
 use \Db\Factory;
 
 class JkdBaseModel
 {
+
     protected $db;
     protected $table;
     protected $fillAble = [];
     protected $selectAble = [];
 
-    public function __construct($dbName = 'db')
+    public function __construct()
     {
-        $config = Yaf\Registry::get('config')->$dbName;
-        $this->db = Factory::create($config);
+//        $this->db = Factory::create('db');
+        $this->db = Factory::getPool();
     }
 
 

@@ -1,4 +1,4 @@
-# JKDYAF - V2.0.0
+# JKDYAF - V2.2.0
 
 ## 基于 YAF + SWOOLE APi框架
            ____ __ ______  _____    ______
@@ -31,6 +31,8 @@ JkdYaf 一个简单、高性能常驻内存的PHP框架。
 - 日志管理
 - 路由管理
 - Yac无锁共享内存
+- 注解AOP
+- 中间件
 
 ### 服务器要求
 - php 7.x 或更高版本
@@ -91,15 +93,8 @@ application.modules = "Api"
 siteUrl = "http://localhost/"
 ;公共类库路径 （该路径必须和php.ini配置里填写的一致）
 comLibsPath = "/www/wwwroot/yaf/yafLibrary/"
-
-#数据库配置
-[db]
-db.host = "localhost"
-db.port = 3306
-db.dbname = "dbname"
-db.username = "username"
-db.password = "password~"
-db.charset = "utf8mb4"
+;接口请求有效时间间隔
+apiTs = 60
 
 #日志配置
 [log]
@@ -108,7 +103,7 @@ log.day = 7
 ;日志路径
 log.path = APP_PATH "/runtime/log/"
 
-[product : common : db : log]
+[product : common : log]
 ```
 
 ### jkdYaf.ini配置
@@ -159,4 +154,4 @@ php bin/JkdYaf.php start -d  //守护进程
 
 浏览器访问 `http://localhost:12222/api/index`
 
-> {"code":1,"message":"success","data":"Hello JkdYaf !"}
+?> {"code":1,"message":"success","data":"Hello JkdYaf !"}

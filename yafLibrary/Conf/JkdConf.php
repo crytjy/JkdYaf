@@ -2,6 +2,7 @@
 /**
  * 配置类
  */
+namespace Conf;
 
 class JkdConf
 {
@@ -22,7 +23,7 @@ class JkdConf
         $fileName = $list[0];
         $key = $list[1] ?? '';
 
-        $config = new Yaf\Config\Ini(CONF_PATH . '/' . $fileName . '.ini');
+        $config = new \Yaf\Config\Ini(CONF_PATH . '/' . $fileName . '.ini');
         if ($isEnv != true) {
             if ($key) {
                 return $config->get($key);

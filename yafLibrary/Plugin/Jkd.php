@@ -1,12 +1,16 @@
 <?php
-
 /**
- * @name SamplePlugin
- * @desc Yaf定义了如下的6个Hook,插件之间的执行顺序是先进先Call
- * @see http://www.php.net/manual/en/class.yaf-plugin-abstract.php
- * @author root
+ * @name JkdPlugin
+ * @author JKD
+ * @date 2021年10月20日 23:50
  */
-class SamplePlugin extends Yaf\Plugin_Abstract
+
+namespace Plugin;
+
+use Aop\JkdAop;
+use Middleware\JkdMiddleware;
+
+class JkdPlugin extends \Yaf\Plugin_Abstract
 {
 
     /**
@@ -16,9 +20,9 @@ class SamplePlugin extends Yaf\Plugin_Abstract
      * @param \Yaf\Response_Abstract $response
      * @return mixed|void
      */
-    public function routerStartup(Yaf\Request_Abstract $request, Yaf\Response_Abstract $response)
+    public function routerStartup(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
-         \JkdRoutes::checkRoute();
+        JkdMiddleware::get()->handle(); //启动中间件
     }
 
 
@@ -30,8 +34,11 @@ class SamplePlugin extends Yaf\Plugin_Abstract
      * @param \Yaf\Response_Abstract $response
      * @return mixed|void
      */
-    public function routerShutdown(Yaf\Request_Abstract $request, Yaf\Response_Abstract $response)
+    public function routerShutdown(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
+        JkdAop::get()->getAopParser();  //获取AOP列表
+        JkdAop::get()->runAop('AopBefore'); //启动AOP
+        JkdAop::get()->runAop('AopAround'); //启动AOP
     }
 
     /**
@@ -41,7 +48,7 @@ class SamplePlugin extends Yaf\Plugin_Abstract
      * @param \Yaf\Response_Abstract $response
      * @return mixed|void
      */
-    public function dispatchLoopStartup(Yaf\Request_Abstract $request, Yaf\Response_Abstract $response)
+    public function dispatchLoopStartup(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
     }
 
@@ -53,7 +60,7 @@ class SamplePlugin extends Yaf\Plugin_Abstract
      * @param \Yaf\Response_Abstract $response
      * @return mixed|void
      */
-    public function preDispatch(Yaf\Request_Abstract $request, Yaf\Response_Abstract $response)
+    public function preDispatch(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
     }
 
@@ -65,8 +72,10 @@ class SamplePlugin extends Yaf\Plugin_Abstract
      * @param \Yaf\Response_Abstract $response
      * @return mixed|void
      */
-    public function postDispatch(Yaf\Request_Abstract $request, Yaf\Response_Abstract $response)
+    public function postDispatch(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
+        JkdAop::get()->runAop('AopAfter'); //启动AOP
+        JkdAop::get()->runAop('AopAround'); //启动AOP
     }
 
 
@@ -77,7 +86,11 @@ class SamplePlugin extends Yaf\Plugin_Abstract
      * @param \Yaf\Response_Abstract $response
      * @return mixed|void
      */
-    public function dispatchLoopShutdown(Yaf\Request_Abstract $request, Yaf\Response_Abstract $response)
+    public function dispatchLoopShutdown(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
+    {
+    }
+
+    public function preResponse(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
     }
 }

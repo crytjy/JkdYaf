@@ -1,6 +1,6 @@
 <?php
 
-if (!function_exists('jump')) {
+if (!function_exists('dump')) {
     function dump($var, $echo = true, $label = null, $flags = ENT_SUBSTITUTE)
     {
         $label = (null === $label) ? '' : rtrim($label) . ':';
@@ -49,6 +49,18 @@ if (!function_exists('environ')) {
     function environ()
     {
         return Yaf\Application::app()->environ();
+    }
+}
+
+
+/**
+ * 检查对应Service
+ */
+if (!function_exists('getService')) {
+    function getService()
+    {
+        $req = \Yaf\Application::app()->getDispatcher()->getRequest();
+        return 'app\services\\' . $req->module . '\\' . $req->controller;
     }
 }
 
@@ -276,5 +288,25 @@ if (!function_exists('array_only')) {
     function array_only($array, $keys)
     {
         return array_intersect_key($array, array_flip((array)$keys));
+    }
+}
+
+
+if (!function_exists('importFile')) {
+    function importFile($firstPath)
+    {
+        $data = getDirContent($firstPath);
+        foreach ($data as $da) {
+            if (is_file($firstPath . $da)) {
+                \Yaf\Loader::import($firstPath . $da);
+            } else {
+                $thisPath = $firstPath . $da;
+                $files = getDirContent($thisPath);
+                foreach ($files as $file) {
+                    \Yaf\Loader::import($thisPath . '/' . $file);
+                }
+            }
+        }
+        $data = null;
     }
 }

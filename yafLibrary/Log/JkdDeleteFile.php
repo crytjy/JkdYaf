@@ -1,8 +1,8 @@
 <?php
 
-namespace Common;
+namespace Log;
 
-class DeleteFile
+class JkdDeleteFile
 {
 
     /**

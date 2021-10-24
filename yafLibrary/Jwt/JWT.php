@@ -3,7 +3,7 @@
 namespace Jwt;
 
 use \DomainException;
-use \InvalidArgumentException;
+use Jkd\JkdResponse;
 use \UnexpectedValueException;
 use \DateTime;
 
@@ -76,30 +76,31 @@ class JWT
         $timestamp = \is_null(static::$timestamp) ? \time() : static::$timestamp;
 
         if (empty($key)) {
-            \JkdResponse::Fail('JWT: Key may not be empty', 401);
+            JkdResponse::Fail('JWT: Key may not be empty', 401);
         }
         $tks = \explode('.', $jwt);
+
         if (\count($tks) != 3) {
-            \JkdResponse::Fail('JWT: Wrong number of segments', 401);
+            JkdResponse::Fail('JWT: Wrong number of segments', 401);
         }
         list($headb64, $bodyb64, $cryptob64) = $tks;
         if (null === ($header = static::jsonDecode(static::urlsafeB64Decode($headb64)))) {
-            \JkdResponse::Fail('JWT: Invalid header encoding', 401);
+            JkdResponse::Fail('JWT: Invalid header encoding', 401);
         }
         if (null === $payload = static::jsonDecode(static::urlsafeB64Decode($bodyb64))) {
-            \JkdResponse::Fail('JWT: Invalid claims encoding', 401);
+            JkdResponse::Fail('JWT: Invalid claims encoding', 401);
         }
         if (false === ($sig = static::urlsafeB64Decode($cryptob64))) {
-            \JkdResponse::Fail('JWT: Invalid signature encodin', 401);
+            JkdResponse::Fail('JWT: Invalid signature encodin', 401);
         }
         if (empty($header->alg)) {
-            \JkdResponse::Fail('JWT: Empty algorithm', 401);
+            JkdResponse::Fail('JWT: Empty algorithm', 401);
         }
         if (empty(static::$supported_algs[$header->alg])) {
-            \JkdResponse::Fail('JWT: Algorithm not supported', 401);
+            JkdResponse::Fail('JWT: Algorithm not supported', 401);
         }
         if (!\in_array($header->alg, $allowed_algs)) {
-            \JkdResponse::Fail('JWT: Algorithm not allowed', 401);
+            JkdResponse::Fail('JWT: Algorithm not allowed', 401);
         }
         if ($header->alg === 'ES256') {
             // OpenSSL expects an ASN.1 DER sequence for ES256 signatures
@@ -109,35 +110,35 @@ class JWT
         if (\is_array($key) || $key instanceof \ArrayAccess) {
             if (isset($header->kid)) {
                 if (!isset($key[$header->kid])) {
-                    \JkdResponse::Fail('JWT: "kid" invalid, unable to lookup correct key', 401);
+                    JkdResponse::Fail('JWT: "kid" invalid, unable to lookup correct key', 401);
                 }
                 $key = $key[$header->kid];
             } else {
-                \JkdResponse::Fail('JWT: "kid" empty, unable to lookup correct key', 401);
+                JkdResponse::Fail('JWT: "kid" empty, unable to lookup correct key', 401);
             }
         }
 
         // Check the signature
         if (!static::verify("$headb64.$bodyb64", $sig, $key, $header->alg)) {
-            \JkdResponse::Fail('JWT: Signature verification failed', 401);
+            JkdResponse::Fail('JWT: Signature verification failed', 401);
         }
 
         // Check the nbf if it is defined. This is the time that the
         // token can actually be used. If it's not yet that time, abort.
         if (isset($payload->nbf) && $payload->nbf > ($timestamp + static::$leeway)) {
-            \JkdResponse::Fail('JWT: Cannot handle token prior to ' . \date(DateTime::ISO8601, $payload->nbf), 401);
+            JkdResponse::Fail('JWT: Cannot handle token prior to ' . \date(DateTime::ISO8601, $payload->nbf), 401);
         }
 
         // Check that this token has been created before 'now'. This prevents
         // using tokens that have been created for later use (and haven't
         // correctly used the nbf claim).
         if (isset($payload->iat) && $payload->iat > ($timestamp + static::$leeway)) {
-            \JkdResponse::Fail('JWT: Cannot handle token prior to ' . \date(DateTime::ISO8601, $payload->iat), 401);
+            JkdResponse::Fail('JWT: Cannot handle token prior to ' . \date(DateTime::ISO8601, $payload->iat), 401);
         }
 
         // Check if this token has expired.
         if (isset($payload->exp) && ($timestamp - static::$leeway) >= $payload->exp) {
-            \JkdResponse::Fail('JWT: Expired token', 401);
+            JkdResponse::Fail('JWT: Expired token', 401);
         }
 
         return $payload;
@@ -194,7 +195,7 @@ class JWT
     public static function sign($msg, $key, $alg = 'HS256')
     {
         if (empty(static::$supported_algs[$alg])) {
-            \JkdResponse::Fail('JWT: Algorithm not supported', 401);
+            JkdResponse::Fail('JWT: Algorithm not supported', 401);
         }
         list($function, $algorithm) = static::$supported_algs[$alg];
         switch ($function) {
@@ -204,7 +205,7 @@ class JWT
                 $signature = '';
                 $success = \openssl_sign($msg, $signature, $key, $algorithm);
                 if (!$success) {
-                    \JkdResponse::Fail('JWT: OpenSSL unable to sign data', 401);
+                    JkdResponse::Fail('JWT: OpenSSL unable to sign data', 401);
                 } else {
                     if ($alg === 'ES256') {
                         $signature = self::signatureFromDER($signature, 256);
@@ -230,7 +231,7 @@ class JWT
     private static function verify($msg, $signature, $key, $alg)
     {
         if (empty(static::$supported_algs[$alg])) {
-            \JkdResponse::Fail('JWT: Algorithm not supported', 401);
+            JkdResponse::Fail('JWT: Algorithm not supported', 401);
         }
 
         list($function, $algorithm) = static::$supported_algs[$alg];
@@ -242,7 +243,7 @@ class JWT
                 } elseif ($success === 0) {
                     return false;
                 }
-                \JkdResponse::Fail('JWT: OpenSSL error: ' . \openssl_error_string(), 401);
+                JkdResponse::Fail('JWT: OpenSSL error: ' . \openssl_error_string(), 401);
             case 'hash_hmac':
             default:
                 $hash = \hash_hmac($algorithm, $msg, $key, true);
@@ -291,7 +292,7 @@ class JWT
         if ($errno = \json_last_error()) {
             static::handleJsonError($errno);
         } elseif ($obj === null && $input !== 'null') {
-            \JkdResponse::Fail('JWT: Null result with non-null input', 401);
+            JkdResponse::Fail('JWT: Null result with non-null input', 401);
         }
         return $obj;
     }
@@ -311,7 +312,7 @@ class JWT
         if ($errno = \json_last_error()) {
             static::handleJsonError($errno);
         } elseif ($json === 'null' && $input !== null) {
-            \JkdResponse::Fail('JWT: Null result with non-null input', 401);
+            JkdResponse::Fail('JWT: Null result with non-null input', 401);
         }
         return $json;
     }
@@ -361,7 +362,7 @@ class JWT
             JSON_ERROR_SYNTAX => 'Syntax error, malformed JSON',
             JSON_ERROR_UTF8 => 'Malformed UTF-8 characters' //PHP >= 5.3.3
         );
-        \JkdResponse::Fail('JWT: ' . (isset($messages[$errno])
+        JkdResponse::Fail('JWT: ' . (isset($messages[$errno])
                 ? $messages[$errno]
                 : 'Unknown JSON error: ' . $errno), 401);
     }

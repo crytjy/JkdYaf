@@ -5,7 +5,7 @@ include __DIR__ . "/bin/Jkd.php";
 use Swoole\Coroutine\Http\Server;
 use Swoole\Process;
 
-define('JKDYAF_VERSION', '2.1.3');
+define('JKDYAF_VERSION', '2.2.0');
 
 class HttpServer
 {

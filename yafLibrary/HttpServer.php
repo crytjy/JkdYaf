@@ -136,10 +136,10 @@ class HttpServer
             ]);
         }, E_ALL);
 
-        $server->handle('/api/', [$this, 'onRequest']);
-        $server->handle('/admin/', [$this, 'onRequest']);
-
-        \Log\JkdLog::channel('memory', '初始化', memory_get_usage());
+        $jkdRoutePrefixList = \Route\JkdRoute::get()->getRoutePrefixs();
+        foreach ($jkdRoutePrefixList as $jkdRoutePrefix) {
+            $server->handle('/' . $jkdRoutePrefix . '/', [$this, 'onRequest']);
+        }
         $server->start();
     }
 
@@ -152,7 +152,6 @@ class HttpServer
 
     public function onRequest(Swoole\Http\Request $request, Swoole\Http\Response $response)
     {
-        \Log\JkdLog::channel('memory', '请求前', memory_get_usage());
 //        \xhprof_enable(XHPROF_FLAGS_MEMORY + XHPROF_FLAGS_CPU+XHPROF_FLAGS_NO_BUILTINS);
 
         ini_set('memory_limit', '-1');
@@ -199,7 +198,7 @@ class HttpServer
         }
         $response->status($status);
         $response->end(json_encode($result));
-        \Log\JkdLog::channel('memory', '请求后', memory_get_usage());
+
 //        $xhprof_data = \xhprof_disable();
 
 //        include_once  '/www/xhprof/xhprof_lib/utils/xhprof_lib.php';

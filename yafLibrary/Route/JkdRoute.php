@@ -8,6 +8,8 @@
 namespace Route;
 
 
+use Log\JkdLog;
+
 class JkdRoute
 {
     /**
@@ -29,6 +31,12 @@ class JkdRoute
             self::$routeList = \Yaf\Registry::get('JkdRouteList');
         }
         return self::$instance;
+    }
+
+
+    public function getRoutePrefixs()
+    {
+        return \Yaf\Registry::get('JkdRoutePrefixList');
     }
 
 

@@ -12,12 +12,14 @@ use Jkd\JkdResponse;
 class JkdRouter
 {
     private $routeList = [];
+    private $routePrefixList = [];
 
     public function handle()
     {
         $this->getRoutes();
 
         \Yaf\Registry::set('JkdRouteList', $this->routeList);
+        \Yaf\Registry::set('JkdRoutePrefixList', $this->routePrefixList);
     }
 
 
@@ -31,8 +33,10 @@ class JkdRouter
         $routeIniConf = \Conf\JkdConf::get('route', false);
         $middlewareConfig = $routeIniConf ? $routeIniConf['middlewareGroup'] : [];
         $routeConfig = $routeIniConf ? $routeIniConf['route'] : [];
+
         $routeIniConf = null;
         foreach ($routeConfig as $route => $routeConf) {
+            $this->routePrefixList[] = $route;
             if (!file_exists(APP_PATH . '/conf/routes/' . $route . '.ini')) {
                 JkdResponse::Error('The Route Not Found: ' . $route . '.ini');
             }
@@ -56,8 +60,8 @@ class JkdRouter
                 }
             }
             $thisRouteConf = null;
-            $middlewareConfig = null;
         }
+        $middlewareConfig = null;
         $routeConfig = null;
     }
 

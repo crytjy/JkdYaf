@@ -16,10 +16,13 @@ class JkdBaseModel
     protected $fillAble = [];
     protected $selectAble = [];
 
-    public function __construct()
+    public function __construct(string $dbName = '')
     {
-//        $this->db = Factory::create('db');
-        $this->db = Factory::getPool();
+        if ($dbName) {
+            $this->db = Factory::create('db');
+        } else {
+            $this->db = Factory::getPool();
+        }
     }
 
 

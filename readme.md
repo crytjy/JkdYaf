@@ -38,7 +38,7 @@ JkdYaf 一个简单、高性能常驻内存的PHP框架。
 ### 服务器要求
 - php 7.x 或更高版本
 - yaf 3.3.x 或更高版本
-- swoole 5.4.x 或更高版本
+- swoole 4.5.x 或更高版本
 - mysql
 - redis
 - yac

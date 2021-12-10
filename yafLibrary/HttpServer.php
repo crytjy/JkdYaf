@@ -152,7 +152,7 @@ class HttpServer
 
     public function onRequest(Swoole\Http\Request $request, Swoole\Http\Response $response)
     {
-//        \xhprof_enable(XHPROF_FLAGS_MEMORY + XHPROF_FLAGS_CPU+XHPROF_FLAGS_NO_BUILTINS);
+        $_startTime = microtime(true);
 
         ini_set('memory_limit', '-1');
         ini_set('display_errors', 'On');    //是否显示错误
@@ -191,6 +191,11 @@ class HttpServer
             $result = ['code' => 0, 'message' => '404 not found', 'data' => [], 'status' => 404];
         }
 
+        //打印数据
+        if (checkAppStatus('debug')) {
+            dd($result);
+        }
+
         $status = 200;
         if (isset($result['status']) && $result['status']) {
             $status = $result['status'];
@@ -199,12 +204,10 @@ class HttpServer
         $response->status($status);
         $response->end(json_encode($result));
 
-//        $xhprof_data = \xhprof_disable();
-
-//        include_once  '/www/xhprof/xhprof_lib/utils/xhprof_lib.php';
-//        include_once  '/www/xhprof/xhprof_lib/utils/xhprof_runs.php';
-//        $xhprof_runs = new \XHProfRuns_Default();
-//        $run_id = $xhprof_runs->save_run($xhprof_data, $this->appName);
+        if (checkAppStatus('reqMsgStatus')) {
+            $_endTime = microtime(true);
+            \Jkd::reqMsg($_startTime, $_endTime, $request, $result, $status);
+        }
     }
 
 

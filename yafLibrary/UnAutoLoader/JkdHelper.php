@@ -310,3 +310,32 @@ if (!function_exists('importFile')) {
         $data = null;
     }
 }
+
+
+if (!function_exists('checkAppStatus')) {
+    function checkAppStatus($type)
+    {
+        return \Yaf\Registry::get('config')->$type ?? false;
+    }
+}
+
+
+if (!function_exists('changeReqTime')) {
+    function changeReqTime($time)
+    {
+        switch($time) {
+            case $time < 0.001:
+                return number_format(($time * 1000000), 4, '.', '') . 'μs';
+                break;
+            case $time < 1:
+                return number_format(($time * 1000), 4, '.', '') . 'ms';
+                break;
+            case $time < 60:
+                return number_format($time, 4, '.', '') . 's';
+                break;
+            default:
+                return number_format(($time / 60), 4, '.', '') . 'm';
+                break;
+        }
+    }
+}

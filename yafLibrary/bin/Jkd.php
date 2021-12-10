@@ -5,8 +5,12 @@ include __DIR__ . "/ConsoleTable.php";
 class Jkd
 {
 
+    const RED_FONT = '0;31';
     const GREEN_FONT = '0;32';
     const YELLOW_FONT = '0;33';
+    const BLUE_FONT = '0;34';
+    const LIGHT_BLUE_FONT = '1;34';
+    const WHITE_FONT = '1;37';
 
     /**
      * 设置颜色
@@ -66,9 +70,9 @@ class Jkd
         $str1 = self::setFont('>>> Components', self::YELLOW_FONT);
         echo $str1 . PHP_EOL;
         $list = [
-            ['PHP', $phpVer, '7.0 +'],
-            ['Swoole', $swooleVer, '4.5 +'],
-            ['YAF', $yafVer, '3.3 +'],
+            ['PHP', $phpVer ?? '', '7.0 +'],
+            ['Swoole', $swooleVer ?? '', '4.5 +'],
+            ['YAF', $yafVer ?? '', '3.3 +'],
         ];
         if ($yacVer) {
             $list[] = ['YAC', $yacVer, '2.3 +'];
@@ -87,6 +91,58 @@ class Jkd
             [['Main HTTP', $ip . ':' . $port, $daemonize ? 'On' : 'Off', $jkdYarVer]]
         );
         echo PHP_EOL;
+    }
+
+
+    public static function reqMsg($_startTime, $_endTime, $request, $result, $status)
+    {
+        $serverData = \Yaf\Registry::get('REQUEST_SERVER');
+        $str = '[JkdYaf] ' . date('Y/m/d-H:i:s', $_startTime) .
+            ' | ' . self::getStatusTxt($status) .
+            ' | ' . changeReqTime($_endTime - $_startTime) .
+            ' | ' . (getClientIp() ?: '-') .
+            ' | ' . self::getMethodTxt($serverData['request_method']) .
+            ' "' . $serverData['request_uri'] . (isset($serverData['query_string']) ? ('?' . $serverData['query_string']) : '') . '"';
+        echo $str . PHP_EOL;
+    }
+
+
+    public static function getMethodTxt($method)
+    {
+        switch ($method) {
+            case 'GET':
+                $color = self::BLUE_FONT;
+                break;
+            case 'POST':
+                $color = self::LIGHT_BLUE_FONT;
+                break;
+            default:
+                $color = self::YELLOW_FONT;
+                break;
+        }
+
+        return self::setFont($method, $color);
+    }
+
+
+    public static function getStatusTxt($status)
+    {
+        switch ($status) {
+            case 200:
+                $color = self::GREEN_FONT;
+                break;
+            case 404:
+                $color = self::WHITE_FONT;
+                break;
+            case 500:
+                $color = self::RED_FONT;
+                break;
+            default:
+                $color = self::YELLOW_FONT;
+                break;
+        }
+
+        return self::setFont($status, $color);
     }
 
 }

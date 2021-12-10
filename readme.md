@@ -21,6 +21,8 @@ JkdYaf 一个简单、高性能常驻内存的PHP框架。
 
 ### [详细文档](http://jkdyaf.crytjy.com/)
 
+![](JkdYaf.png)
+
 ### 特性
 
 - HTTP 服务
@@ -155,4 +157,4 @@ php bin/JkdYaf.php start -d  //守护进程
 
 浏览器访问 `http://localhost:12222/api/index`
 
-?> {"code":1,"message":"success","data":"Hello JkdYaf !"}
+> {"code":1,"message":"success","data":"Hello JkdYaf !"}

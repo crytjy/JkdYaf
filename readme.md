@@ -1,4 +1,4 @@
-# JKDYAF - V2.2.0
+# JKDYAF - V2.2.1
 
 ## 基于 YAF + SWOOLE APi框架
            ____ __ ______  _____    ______
@@ -64,9 +64,9 @@ yaf.library="/path/JkdYafLibrary/"  //全局类库的目录路径
     
 extension=yac.so
 [yac]
-;是否开启yac，1表示开启， 0表示关闭
+;是否开启yac,1表示开启, 0表示关闭
 yac.enable=1 
-;4M可以得到32768个key， 32M可以得到262144个key
+;4M可以得到32768个key, 32M可以得到262144个key
 yac.keys_memory_size=4M
 ;申请的最大value内存
 yac.values_memory_size = 64M 

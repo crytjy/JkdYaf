@@ -5,7 +5,7 @@ include __DIR__ . "/bin/Jkd.php";
 use Swoole\Coroutine\Http\Server;
 use Swoole\Process;
 
-define('JKDYAF_VERSION', '2.2.0');
+define('JKDYAF_VERSION', '2.2.2');
 
 class HttpServer
 {
@@ -63,6 +63,16 @@ class HttpServer
             \Jkd::start($this->ip, $this->port, self::$daemonize);
             return $this->onManagerStart();
         }
+    }
+
+
+    public function stop()
+    {
+        $appName = $this->jkdYafConfig['common']['app_name'] ?? '';
+        if (!$appName) {
+            return \Jkd::isRunning('The AppName can not be null');
+        }
+        exec("ps -ef | grep {$appName} | grep -v grep | awk '{print \"kill -9 \"$2}'|sh");
     }
 
 

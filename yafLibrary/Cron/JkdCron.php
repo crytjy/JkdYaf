@@ -2,11 +2,10 @@
 /**
  * 定时任务
  */
+
 namespace Cron;
 
 use Conf\JkdConf;
-use Log\JkdDeleteFile;
-use Log\JkdLog;
 
 class JkdCron
 {
@@ -19,29 +18,56 @@ class JkdCron
 
             if (isset($confArray['is_start']) && $confArray['is_start'] == true) {
                 unset($confArray['is_start']);
+                file_put_contents($timerPidFile, $masterPid);
 
-                //定时删除日志
-                \Swoole\Timer::tick(86460000, function () {
-                    JkdDeleteFile::delLogs();
+                //定时清除日志
+                $confArray[] = [
+                    'class' => '\Log\JkdDeleteFile',
+                    'func' => 'delLogs',
+                    'cronTime' => '0 0 * * *'
+                ];
+
+                //定期清理碎片内存
+                \Swoole\Timer::tick(3600000, function () {
+                    $memory = memory_get_usage();
+                    gc_mem_caches();
                 });
 
-                $data = array_group($confArray ?? [], 'msec');
-                foreach ($data as $msec => $da) {
-                    \Swoole\Timer::tick($msec, function () use ($da) {
-                        foreach ($da as $d) {
-                            $thisFunc = $d['func'] ?? '';
-                            if ($thisFunc) {
-                                $class = new $d['class']();
-                                $class->$thisFunc();
-                            }
-                        }
-                    });
-                }
-                file_put_contents($timerPidFile, $masterPid);
-                JkdLog::channel('crontab', 'masterPid-' . $masterPid, \Swoole\Timer::list());
+                $data = array_group($confArray ?? [], 'cronTime');
+                self::startTimer($data);
             }
         }
     }
 
+
+    private static function startTimer($data)
+    {
+        $parser = new JkdParser();
+        $timerTimes = [];
+        $timerTimeTasks = [];
+        foreach ($data as $cronTime => $da) {
+            if ($res = $parser->parse($cronTime)) {
+                $timerTimes[$cronTime] = $res;
+                $timerTimeTasks[$cronTime] = $da;
+            }
+        }
+
+        if ($timerTimes && $timerTimeTasks) {
+            \Swoole\Timer::tick(1000, function () use ($timerTimes, $timerTimeTasks, $parser) {
+                $thisTime = time();
+                foreach ($timerTimes as $cronTime => $timerTime) {
+                    if (isset($timerTimeTasks[$cronTime]) && $parser->check($thisTime, $timerTime)) {
+                        foreach ($timerTimeTasks[$cronTime] as $timerTimeTask) {
+                            \Swoole\Timer::after(1, function () use ($timerTimeTask, $thisTime) {
+                                $class = new $timerTimeTask['class']();
+                                $func = $timerTimeTask['func'];
+                                $class->$func();
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    }
 
 }

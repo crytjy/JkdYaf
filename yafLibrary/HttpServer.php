@@ -5,20 +5,19 @@ include __DIR__ . "/bin/Jkd.php";
 use Swoole\Coroutine\Http\Server;
 use Swoole\Process;
 
-define('JKDYAF_VERSION', '2.2.2');
+define('JKDYAF_VERSION', '2.2.3');
 
 class HttpServer
 {
     private $jkdYafConfig;
     private $app;
 
-    protected static $runStatus = true;
     protected static $instance = null;
     protected static $daemonize = null;
 
     private $ip;
     private $port;
-    private $appName;
+    private $globals;
 
     private function __construct()
     {
@@ -27,7 +26,6 @@ class HttpServer
 
         $this->ip = $this->jkdYafConfig['common']['ip'] ?? '';
         $this->port = $this->jkdYafConfig['common']['port'] ?? '';
-        $this->appName = $this->jkdYafConfig['common']['app_name'] ?? '';
     }
 
 
@@ -42,7 +40,6 @@ class HttpServer
         if (empty(self::$instance) || !(self::$instance instanceof HttpServer)) {
             self::$instance = new self();
             self::$daemonize = $daemonize;
-            self::$runStatus = false;
         }
 
         return self::$instance;
@@ -51,14 +48,14 @@ class HttpServer
 
     /**
      * 启动
+     *
+     * @return bool
      */
     public function start()
     {
-        exec('ps -ef|grep ' . $this->appName, $res);
-        $resCount = $res ? count($res) : 0;
-
-        if ($resCount > 3) {
-            return \Jkd::isRunning('JkdYaf is running');
+        $pids = file_get_contents($this->jkdYafConfig['common']['pid_file']);
+        if ($pids) {
+            return \Jkd::echoStr('JkdYaf is running');
         } else {
             \Jkd::start($this->ip, $this->port, self::$daemonize);
             return $this->onManagerStart();
@@ -66,13 +63,49 @@ class HttpServer
     }
 
 
+    /**
+     * 停止
+     *
+     * @return bool
+     */
     public function stop()
     {
-        $appName = $this->jkdYafConfig['common']['app_name'] ?? '';
-        if (!$appName) {
-            return \Jkd::isRunning('The AppName can not be null');
+        $pids = file_get_contents($this->jkdYafConfig['common']['pid_file']);
+        if ($pids) {
+            $pids = explode('|', $pids);
+            foreach ($pids as $pid) {
+                Process::kill($pid, SIGKILL);
+            }
+            file_put_contents($this->jkdYafConfig['common']['pid_file'], '');
+            return \Jkd::echoStr('JkdYaf is stopped', 3);
         }
-        exec("ps -ef | grep {$appName} | grep -v grep | awk '{print \"kill -9 \"$2}'|sh");
+
+        return \Jkd::echoStr('JkdYaf can not stop', 3);
+    }
+
+
+    /**
+     * 重启
+     */
+    public function restart()
+    {
+        $this->stop();
+        self::$daemonize = true;
+        $this->start();
+    }
+
+
+    public function status()
+    {
+        $pids = file_get_contents($this->jkdYafConfig['common']['pid_file']);
+        $pid = $pids ? (explode('|', $pids)[0] ?? 0) : 0;
+        if ($pid && Process::kill($pid, PRIO_PROCESS)) {
+            self::$daemonize = true;
+            \Jkd::start($this->ip, $this->port, self::$daemonize);
+            return true;
+        }
+
+        return \Jkd::echoStr('JkdYaf is not running', 2);
     }
 
 
@@ -80,13 +113,16 @@ class HttpServer
     {
         // 清空初始化文件
         file_put_contents($this->jkdYafConfig['common']['timer_pid_file'], '');
+        file_put_contents($this->jkdYafConfig['common']['pid_file'], '');
 
         if (self::$daemonize) {
             Process::daemon();
         }
-        $pool = new Process\Pool($this->jkdYafConfig['server']['worker_num']);
+        $pool = new Process\Pool($this->jkdYafConfig['common']['worker_num'], SWOOLE_IPC_NONE, 0, true);
         swoole_set_process_name($this->jkdYafConfig['common']['manager_process_name']);
-        $pool->set(['enable_coroutine' => true]);
+        if (self::$daemonize) {
+            file_put_contents($this->jkdYafConfig['common']['pid_file'], posix_getpid());
+        }
         $pool->on('WorkerStart', [$this, 'onWorkerStart']);
         $pool->on('WorkerStop', [$this, 'onWorkerStop']);
         $pool->start();
@@ -104,23 +140,19 @@ class HttpServer
         $this->createPoolLog();
 
         $processId = $pool->master_pid . ':' . $workerId;
-        if ($workerId >= $this->jkdYafConfig['server']['worker_num']) {
-            $processName = sprintf($this->jkdYafConfig['common']['event_tasker_process_name'], $processId);
-            if (is_file($this->jkdYafConfig['common']['tasker_pid_file'])) {
-                file_put_contents($this->jkdYafConfig['common']['tasker_pid_file'], $pool->master_pid . ':' . $workerId . '|', FILE_APPEND);
-            }
-        } else {
-            $processName = sprintf($this->jkdYafConfig['common']['event_worker_process_name'], $processId);
-            if (is_file($this->jkdYafConfig['common']['worker_pid_file'])) {
-                file_put_contents($this->jkdYafConfig['common']['worker_pid_file'], $pool->master_pid . ':' . $workerId . '|', FILE_APPEND);
-            }
-        }
+        $processName = sprintf($this->jkdYafConfig['common']['event_worker_process_name'], $processId);
         swoole_set_process_name($processName);
+        if (is_file($this->jkdYafConfig['common']['pid_file']) && self::$daemonize) {
+            file_put_contents($this->jkdYafConfig['common']['pid_file'], '|' . posix_getpid(), FILE_APPEND);
+        }
 
         $server = new Server($this->ip, $this->port, false, true);
         //实例化yaf
         $this->app = new Yaf\Application(APP_PATH . "/conf/app.ini");
         $this->app->bootstrap();
+
+        //设置时区
+        date_default_timezone_set('PRC');
 
         // 启动Redis连接池
         $this->startRedis($workerId);
@@ -162,6 +194,7 @@ class HttpServer
 
     public function onRequest(Swoole\Http\Request $request, Swoole\Http\Response $response)
     {
+//        echo '运行前内存：' . round(memory_get_usage() / 1024 / 1024, 2) . 'MB', PHP_EOL;
         $_startTime = microtime(true);
 
         ini_set('memory_limit', '-1');
@@ -173,24 +206,22 @@ class HttpServer
         $response->header('Access-Control-Allow-Origin', '*');  //解决跨域
         $response->header('Content-Type', 'application/json');
 
-        //注册全局信息
-        $this->initRequestParam($request);
-        Yaf\Registry::set('SWOOLE_HTTP_REQUEST', $request);
-        Yaf\Registry::set('SWOOLE_HTTP_RESPONSE', $response);
-
-        $requestRoute = $request->server['request_uri'] ?? '';
+        $this->globals = $GLOBALS;
         $requestMethod = $request->server['request_method'] ?? '';
-        $requestRouteData = \Route\JkdRoute::get()->getRoute($requestRoute);
+        $requestRouteData = \Route\JkdRoute::get()->getRoute($request->server['request_uri'] ?? '');
         $requestRoute = $requestRouteData['action'] ?? '';
         $needMethod = $requestRouteData['method'] ?? '';
         $needMethod = strtoupper($needMethod);
         if ($requestRoute && $needMethod == $requestMethod) {
+            //注册全局信息
+            $this->initRequestParam($request, $needMethod);
+
             ob_start();
             $yafRequest = new Yaf\Request\Http($requestRoute);
-            Yaf\Registry::set('YAF_HTTP_REQUEST', $yafRequest);
-
+            $this->globals['YAF_HTTP_REQUEST'] = $yafRequest;
             //关闭视图
             Yaf\Dispatcher::getInstance()->autoRender(FALSE);
+
             $this->app->getDispatcher()->dispatch($yafRequest);
             $result = ob_get_contents();
             ob_end_clean();
@@ -201,23 +232,31 @@ class HttpServer
             $result = ['code' => 0, 'message' => '404 not found', 'data' => [], 'status' => 404];
         }
 
-        //打印数据
-        if (checkAppStatus('debug')) {
-            dd($result);
-        }
-
         $status = 200;
         if (isset($result['status']) && $result['status']) {
             $status = $result['status'];
             unset($result['status']);
         }
+
+        $_endTime = microtime(true);
+        if (self::$daemonize != true) {
+            \Jkd::reqMsg($_startTime, $_endTime, $status);
+        }
+
+        // 储存请求日志
+        if (checkIoStatus('reqLogStatus')) {
+            \Task\JkdTask::dispatch(\Job\JkdSysLog::class, [
+                'runtime' => $_endTime - $_startTime,
+                'route' => $request->server['request_uri'] ?? $requestRoute,
+                'params' => $GLOBALS['REQUEST_PARAMS'],
+                'result' => $result,
+            ]);
+        }
+
+        $this->unsetGlobals();
         $response->status($status);
         $response->end(json_encode($result));
-
-        if (checkAppStatus('reqMsgStatus')) {
-            $_endTime = microtime(true);
-            \Jkd::reqMsg($_startTime, $_endTime, $request, $result, $status);
-        }
+//        echo '运行后内存：' . round(memory_get_usage() / 1024 / 1024, 2) . 'MB', PHP_EOL;
     }
 
 
@@ -225,30 +264,53 @@ class HttpServer
      * 将请求信息放入全局注册器中
      *
      * @param \Swoole\Http\Request $request
-     * @return bool
+     * @return array
      */
-    private function initRequestParam(Swoole\Http\Request $request)
+    private function initRequestParam(Swoole\Http\Request $request, $needMethod)
     {
         //将请求的一些环境参数放入全局变量桶中
         $server = $request->server ?? [];
         $header = $request->header ?? [];
         $get = $request->get ?? [];
-        $post = $request->post ?? [];
+//        $post = $request->post ?? [];
+        $post = $request->getContent() ?? [];
         $cookie = $request->cookie ?? [];
         $files = $request->files ?? [];
 
-        Yaf\Registry::set('REQUEST_SERVER', $server);
-        Yaf\Registry::set('REQUEST_HEADER', $header);
-        Yaf\Registry::set('REQUEST_GET', $get);
-        Yaf\Registry::set('REQUEST_POST', $post);
-        Yaf\Registry::set('REQUEST_COOKIE', $cookie);
-        Yaf\Registry::set('REQUEST_FILES', $files);
-        Yaf\Registry::set('REQUEST_RAW_CONTENT', $request->rawContent());
+        $this->globals['REQUEST_SERVER'] = $server;
+        $this->globals['REQUEST_HEADER'] = $header;
+        $this->globals['REQUEST_GET'] = $get;
+        $this->globals['REQUEST_POST'] = $post;
+        $this->globals['REQUEST_COOKIE'] = $cookie;
+        $this->globals['REQUEST_FILES'] = $files;
+        $this->globals['REQUEST_RAW_CONTENT'] = $request->rawContent();
 
-        $params = $get ?: $post;
-        Yaf\Registry::set('REQUEST_PARAMS', $params);
+        $params = $needMethod == 'GET' ? $get : $post;
+        if ($params && is_array($params)) {
+            foreach ($params as $i => $requestParam) {
+                $requestParam = remove_xss($requestParam);
+                $params[$i] = safe_replace($requestParam);
+            }
+        }
+        $this->globals['REQUEST_PARAMS'] = $params;
 
-        return true;
+        return $params;
+    }
+
+
+    /**
+     * 释放全局变量
+     */
+    private function unsetGlobals()
+    {
+        unset($GLOBALS['REQUEST_SERVER']);
+        unset($GLOBALS['REQUEST_HEADER']);
+        unset($GLOBALS['REQUEST_GET']);
+        unset($GLOBALS['REQUEST_POST']);
+        unset($GLOBALS['REQUEST_COOKIE']);
+        unset($GLOBALS['REQUEST_FILES']);
+        unset($GLOBALS['REQUEST_RAW_CONTENT']);
+        unset($GLOBALS['REQUEST_PARAMS']);
     }
 
 

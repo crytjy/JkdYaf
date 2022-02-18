@@ -15,7 +15,7 @@ class Mysql extends MysqlHandle
     private function __construct($dbhost, $dbport, $username, $password, $dbname, $dbcharset)
     {
         try {
-            $this->_dbh = new \PDO('mysql:dbname=' . $dbname . ';host=' . $dbhost . ';port=' . $dbport . ';charset=' . $dbcharset, $username, $password, array(\PDO::ATTR_PERSISTENT => true));
+            $this->_dbh = new \PDO('mysql:dbname=' . $dbname . ';host=' . $dbhost . ';port=' . $dbport . ';charset=' . $dbcharset, $username, $password, [\PDO::ATTR_PERSISTENT => true, \PDO::ATTR_EMULATE_PREPARES  => false]);
         } catch (PDOException $e) {
             JkdLog::error($e->getMessage());
             die();

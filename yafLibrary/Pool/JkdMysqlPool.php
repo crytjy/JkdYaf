@@ -60,7 +60,7 @@ class JkdMysqlPool
     private function __construct()
     {
         // 读取配置类
-        $config = \Yaf\Registry::get('dbConf');
+        $config = JkdConf::get('db');
         $this->max = (int)$config['pool_max'];
         $this->isMonitor = $config['is_monitor'];
         $this->config = [
@@ -107,6 +107,7 @@ class JkdMysqlPool
             ->withCharset($this->config['charset'])
             ->withUsername($this->config['username'])
             ->withPassword($this->config['password'])
+            ->withOptions([\PDO::ATTR_EMULATE_PREPARES => false])
             , $this->max);
     }
 

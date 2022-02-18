@@ -20,4 +20,14 @@ class IndexController extends \Jkd\JkdBaseController
     {
         return $this->JkdService->index();
     }
+
+    public function taskAction()
+    {
+        return $this->JkdService->task();
+    }
+
+    public function articleAction()
+    {
+        return $this->JkdService->article();
+    }
 }

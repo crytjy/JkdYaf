@@ -38,13 +38,9 @@ class JkdBootstrap extends \Yaf\Bootstrap_Abstract
         $redisKeyConfig = JkdConf::get('redisKey');
         \Yaf\Registry::set('redisKeyConf', $redisKeyConfig);
 
-        //保存redis配置
-        $redisConfig = JkdConf::get('redis');
-        \Yaf\Registry::set('redisConf', $redisConfig);
-
-        //保存db配置
-        $dbConfig = JkdConf::get('db');
-        \Yaf\Registry::set('dbConf', $dbConfig);
+        //保存channel
+        $channelConfig = JkdConf::get('channel');
+        \Yaf\Registry::set('channelConfig', $channelConfig);
     }
 
 
@@ -53,7 +49,7 @@ class JkdBootstrap extends \Yaf\Bootstrap_Abstract
      */
     public function _initClassLoader()
     {
-        $classList = ['services', 'crontab', 'middleware'];
+        $classList = ['services', 'crontab', 'middleware', 'task'];
         foreach ($classList as $class) {
             $firstPath = APP_PATH . '/app/' . $class . '/';
             importFile($firstPath);

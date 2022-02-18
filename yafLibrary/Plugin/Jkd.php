@@ -22,7 +22,7 @@ class JkdPlugin extends \Yaf\Plugin_Abstract
      */
     public function routerStartup(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
-        if (checkAppStatus('middlewareStatus')) {
+        if (checkIoStatus('middlewareStatus')) {
             JkdMiddleware::get()->handle(); //启动中间件
         }
     }
@@ -38,7 +38,7 @@ class JkdPlugin extends \Yaf\Plugin_Abstract
      */
     public function routerShutdown(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
-        if (checkAppStatus('aopStatus')) {
+        if (checkIoStatus('aopStatus')) {
             JkdAop::get()->getAopParser();  //获取AOP列表
             JkdAop::get()->runAop('AopBefore'); //启动AOP
             JkdAop::get()->runAop('AopAround'); //启动AOP
@@ -78,7 +78,7 @@ class JkdPlugin extends \Yaf\Plugin_Abstract
      */
     public function postDispatch(\Yaf\Request_Abstract $request, \Yaf\Response_Abstract $response)
     {
-        if (checkAppStatus('aopStatus')) {
+        if (checkIoStatus('aopStatus')) {
             JkdAop::get()->runAop('AopAfter'); //启动AOP
             JkdAop::get()->runAop('AopAround'); //启动AOP
         }

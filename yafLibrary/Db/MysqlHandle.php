@@ -43,6 +43,10 @@ class MysqlHandle implements DbInterface
             $this->halt();
         }
 
+        // 储存Sql操作记录
+        if (checkIoStatus('sqlLogStatus')) {
+            \Task\JkdTask::dispatch(\Job\JkdSqlLog::class, ['sqlStr' => $sql, 'values' => $values]);
+        }
         return $bool;
     }
 

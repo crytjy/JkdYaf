@@ -18,7 +18,7 @@ class Factory
      */
     static public function create($dbName)
     {
-        $config = \Yaf\Registry::get('dbConf');
+        $config = JkdConf::get('db');
         $db = \Db\Mysql::getInstance($config[$dbName]);
         return ($db instanceof DbInterface) ? $db : false;
     }

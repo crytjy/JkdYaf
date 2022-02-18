@@ -93,7 +93,8 @@ if (!function_exists('UserKey')) {
 if (!function_exists('getClientIp')) {
     function getClientIp()
     {
-        $headerData = Yaf\Registry::get('REQUEST_HEADER');
+//        $headerData = Yaf\Registry::get('REQUEST_HEADER');
+        $headerData = $GLOBALS['REQUEST_HEADER'];
         return $headerData['x-real-ip'] ?? '';
     }
 }
@@ -312,10 +313,10 @@ if (!function_exists('importFile')) {
 }
 
 
-if (!function_exists('checkAppStatus')) {
-    function checkAppStatus($type)
+if (!function_exists('checkIoStatus')) {
+    function checkIoStatus($type)
     {
-        return \Yaf\Registry::get('config')->$type ?? false;
+        return \Yaf\Registry::get('config')['io']->$type ?? false;
     }
 }
 
@@ -337,5 +338,11 @@ if (!function_exists('changeReqTime')) {
                 return number_format(($time / 60), 4, '.', '') . 'm';
                 break;
         }
+    }
+}
+
+if (!function_exists('debug')) {
+    function debug($data) {
+        return \Jkd\JkdResponse::Debug($data);
     }
 }

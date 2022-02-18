@@ -72,4 +72,20 @@ class JkdResponse
         return self::output($outArray, true);
     }
 
+
+    /**
+     * debug返回json
+     *
+     * @param string $data
+     * @param string $message
+     * @param int $status
+     * @param int $code
+     * @throws Exception
+     */
+    public static function Debug($data = "", $message = "debug", $status = 400, $code = 3)
+    {
+        $outArray = ['code' => $code, 'message' => $message, 'data' => $data, 'status' => $status];
+        return self::output($outArray, true);
+    }
+
 }

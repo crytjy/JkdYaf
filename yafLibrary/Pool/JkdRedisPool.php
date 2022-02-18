@@ -8,6 +8,7 @@
 
 namespace Pool;
 
+use Conf\JkdConf;
 use Swoole\Database\RedisConfig;
 use Swoole\Database\RedisPool;
 
@@ -59,7 +60,7 @@ class JkdRedisPool
     private function __construct()
     {
         // 读取配置类
-        $config = \Yaf\Registry::get('redisConf');
+        $config = JkdConf::get('redis');
         $this->max = (int)$config['pool_max'];
         $this->isMonitor = $config['is_monitor'];
         $this->config = [

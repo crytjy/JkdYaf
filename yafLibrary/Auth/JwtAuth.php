@@ -18,7 +18,7 @@ class JwtAuth
      */
     public static function getToken($guid)
     {
-        $siteUrl = $logPath = \Yaf\Registry::get('config')->siteUrl;   //域名
+        $siteUrl = $logPath = \Yaf\Registry::get('channelConfig')->siteUrl;   //域名
         $nowtime = time();
         $token = [
             "iss" => $siteUrl,       //签发人

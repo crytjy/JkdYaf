@@ -39,9 +39,16 @@ class Jkd
         }
     }
 
-    public static function isRunning($str)
+    public static function echoStr($str, $type = 1)
     {
-        echo self::setFont($str . PHP_EOL, self::GREEN_FONT);
+        if ($type == 1) {
+            $color = self::GREEN_FONT;
+        } elseif ($type == 2) {
+            $color = self::YELLOW_FONT;
+        } else {
+            $color = self::RED_FONT;
+        }
+        echo self::setFont($str . PHP_EOL, $color);
         return true;
     }
 
@@ -94,13 +101,29 @@ class Jkd
     }
 
 
-    public static function reqMsg($_startTime, $_endTime, $request, $result, $status)
+    public static function reqMsg($_startTime, $_endTime, $status)
     {
-        $serverData = \Yaf\Registry::get('REQUEST_SERVER');
+        $serverData = $GLOBALS['REQUEST_SERVER'];
+        $time = changeReqTime($_endTime - $_startTime);
+        $num = 10 - mb_strlen($time);
+        if ( $num > 0 ) {
+            for ($i = 0; $i < $num; $i ++) {
+                $time .= ' ';
+            }
+        }
+
+        $ip = getClientIp() ?: '-';
+        $num = 15 - mb_strlen($ip);
+        if ( $num > 0 ) {
+            for ($i = 0; $i < $num; $i ++) {
+                $ip .= ' ';
+            }
+        }
+
         $str = '[JkdYaf] ' . date('Y/m/d-H:i:s', $_startTime) .
             ' | ' . self::getStatusTxt($status) .
-            ' | ' . changeReqTime($_endTime - $_startTime) .
-            ' | ' . (getClientIp() ?: '-') .
+            ' | ' . $time .
+            ' | ' . $ip .
             ' | ' . self::getMethodTxt($serverData['request_method']) .
             ' "' . $serverData['request_uri'] . (isset($serverData['query_string']) ? ('?' . $serverData['query_string']) : '') . '"';
         echo $str . PHP_EOL;

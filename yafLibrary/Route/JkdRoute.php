@@ -72,7 +72,7 @@ class JkdRoute
      */
     public function getRouteMiddleware()
     {
-        $serverData = \Yaf\Registry::get('REQUEST_SERVER');
+        $serverData = $GLOBALS['REQUEST_SERVER'];
         $route = $serverData['request_uri'] ?? '';  //客户端请求的路由
         return self::$routeList[$route]['middleware'] ?? [];
     }

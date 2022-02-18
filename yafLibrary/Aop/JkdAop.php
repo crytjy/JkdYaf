@@ -37,12 +37,11 @@ class JkdAop
      */
     public function getAopParser()
     {
-        $yafRequest = \Yaf\Registry::get('YAF_HTTP_REQUEST');
+        $yafRequest = $GLOBALS['YAF_HTTP_REQUEST'];
         $moduleName = $yafRequest->module ?? '';
         $controllerName = $yafRequest->controller ?? '';
         $className = $controllerName . 'Controller' ?? '';
         $functionName = $yafRequest->action . 'Action' ?? '';
-
         \Yaf\Loader::import(APP_PATH . '/app/modules/' . $moduleName . '/controllers/' . $controllerName . '.php');
         $ref = new \ReflectionMethod($className, $functionName);
         $doc = $ref->getDocComment();

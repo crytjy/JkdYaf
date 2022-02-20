@@ -28,7 +28,7 @@ class JkdBaseModel extends BaseModel
 
     public function __construct(string $dbName = '')
     {
-        $this->cacheKey = $this->cacheKey ?? $this->table;
+        $this->cacheKey = $this->cacheKey ?: $this->table;
         $this->cacheAllKey = $this->cacheKey . ':ALL';
         parent::__construct($dbName);
     }

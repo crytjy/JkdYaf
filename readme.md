@@ -1,6 +1,6 @@
 # JKDYAF - V2.2.3
 
-## 基于 YAF + SWOOLE APi框架
+## 基于 YAF + SWOOLE API框架
            ____ __ ______  _____    ______
           / / //_// __ \ \/ /   |  / ____/
      __  / / ,<  / / / /\  / /| | / /_
@@ -36,6 +36,7 @@ JkdYaf 一个简单、高性能常驻内存的PHP框架。
 - 注解AOP
 - 中间件
 - Mysql连接池
+- 异步任务
 
 ### 服务器要求
 - php 7.x 或更高版本
@@ -44,7 +45,6 @@ JkdYaf 一个简单、高性能常驻内存的PHP框架。
 - mysql
 - redis
 - yac
-
 
 
 ### 安装JkdYaf
@@ -90,14 +90,22 @@ application.dispatcher.throwException = TRUE
 ;本地类库
 application.library = APP_PATH "/library"
 application.library.namespace = "Com"
-;多模块（多个模块）
+;多模块
 application.modules = "Api"
-;域名
-siteUrl = "http://localhost/"
-;公共类库路径 （该路径必须和php.ini配置里填写的一致）
-comLibsPath = "/www/wwwroot/yaf/yafLibrary/"
+;公共类库路径（该路径必须和php.ini配置里填写的一致）
+comLibsPath = "/path/JkdYafLibrary/"
 ;接口请求有效时间间隔
 apiTs = 60
+
+[io]
+;AOP开关
+io.aopStatus = TRUE
+;中间件开关
+io.middlewareStatus = TRUE
+;请求日志
+io.reqLogStatus = TRUE
+;sql日志
+io.sqlLogStatus = TRUE
 
 #日志配置
 [log]
@@ -106,7 +114,7 @@ log.day = 7
 ;日志路径
 log.path = APP_PATH "/runtime/log/"
 
-[product : common : log]
+[product : common : io : log]
 ```
 
 ### jkdYaf.ini配置
@@ -119,6 +127,7 @@ log.path = APP_PATH "/runtime/log/"
 ip = "0.0.0.0"
 port = 12222    //监听端口，随意改
 app_name = JkdYaf   //项目名称（英文），多个项目时区分
+worker_num = 32     //根据实际情况相应改动
 master_process_name = JkdYaf-Master
 manager_process_name = JkdYaf-Manager
 event_worker_process_name = JkdYaf-Worker-%s
@@ -132,17 +141,10 @@ worker_pid_file = APP_PATH "/runtime/worker.pid"
 tasker_pid_file = APP_PATH "/runtime/tasker.pid"
 ; 记录timer的进程id
 timer_pid_file = APP_PATH "/runtime/timer.pid"
-
-; 以下参数根据服务器配置相应改动
-[server]
-process_num = 1
-worker_num = 4
-max_request = 30000
-dispatch_mode = 3
+; log_file
 log_file = APP_PATH "/runtime/swoole.log"
-log_rotation = SWOOLE_LOG_ROTATION_DAILY
 
-[product : common : server]
+[product : common]
 ```
 
 ### 启动

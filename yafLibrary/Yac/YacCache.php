@@ -1,42 +1,44 @@
 <?php
-
 /**
- * Yac是无锁的、共享内存的Cache
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Yac;
 
 class YacCache
 {
-    private static $_ttlMaxTime = 864000;  //86400*10 为防止永久贮存及保存时间过久造成内存消耗严重导致数据被踢出
     public $yac;
+
+    private static $_ttlMaxTime = 864000;  // 86400*10 为防止永久贮存及保存时间过久造成内存消耗严重导致数据被踢出
 
     public function __construct($prefix = '')
     {
         $this->yac = new \Yac($prefix);
     }
 
-
     /**
-     * 添加单个
+     * 添加单个.
      *
      * @param string $keys
      * @param $value
      * @param int $ttl
+     * @param mixed $key
      * @return mixed
      */
     public function add($key, $value = '', $ttl = -1)
     {
         if (is_array($key)) {
             return false;
-        } else {
-            return $this->yac->add($key, $value, self::getTtl($ttl));
         }
+        return $this->yac->add($key, $value, self::getTtl($ttl));
     }
 
-
     /**
-     * 添加多个
+     * 添加多个.
      *
      * @param array $keys
      * @param int $ttl
@@ -46,14 +48,12 @@ class YacCache
     {
         if (is_array($keys)) {
             return $this->yac->add($keys, self::getTtl($ttl));
-        } else {
-            return false;
         }
+        return false;
     }
 
-
     /**
-     * 设置
+     * 设置.
      *
      * @param $key
      * @param $value
@@ -65,9 +65,8 @@ class YacCache
         return $this->yac->set($key, $value, self::getTtl($ttl));
     }
 
-
     /**
-     * 获取
+     * 获取.
      *
      * @param $key
      * @return mixed
@@ -76,7 +75,6 @@ class YacCache
     {
         return $this->yac->get($key);
     }
-
 
     /**
      * 删除
@@ -91,9 +89,8 @@ class YacCache
         return $this->yac->delete($keys, $delay);
     }
 
-
     /**
-     * 清楚所有
+     * 清楚所有.
      *
      * 立即使所有现有项目失效。
      * 它实际上并没有释放任何资源，它仅将所有项目标记为无效。
@@ -105,9 +102,8 @@ class YacCache
         return $this->yac->flush();
     }
 
-
     /**
-     * 查看信息
+     * 查看信息.
      *
      * @param $key
      * @return mixed
@@ -117,9 +113,8 @@ class YacCache
         return $this->yac->info();
     }
 
-
     /**
-     * 获取所有Key信息
+     * 获取所有Key信息.
      *
      * @param $key
      * @return mixed
@@ -129,9 +124,8 @@ class YacCache
         return $this->yac->dump();
     }
 
-
     /**
-     * 获取所有Key
+     * 获取所有Key.
      *
      * @param $key
      * @return mixed
@@ -146,10 +140,9 @@ class YacCache
         return $keys ?? [];
     }
 
-
     /**
      * 验证储存时间
-     * 超过最大时间，则返回最大时间
+     * 超过最大时间，则返回最大时间.
      *
      * @param int $ttl
      * @return int
@@ -162,5 +155,4 @@ class YacCache
 
         return $ttl;
     }
-
 }

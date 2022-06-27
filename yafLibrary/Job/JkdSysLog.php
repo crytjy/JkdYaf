@@ -1,15 +1,16 @@
 <?php
 /**
- * 储存系统请求日志
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Job;
-
-use Log\JkdLog;
 
 class JkdSysLog
 {
-
     public static function handle($params)
     {
         $runtime = $params['runtime'];
@@ -17,13 +18,10 @@ class JkdSysLog
         $result = $params['result'];
         $params = $params['params'];
 
-        JkdLog::channel('sysReq', 'runtime：' . changeReqTime($runtime) . ' -', [
-            'Request' => [
-                'route' => $route,
-                'params' => $params
-            ],
-            'Response' => $result
-        ]);
+        \SeasLog::info('runtime：' . changeReqTime($runtime) . '-' . json_encode([
+            'route' => $route,
+            'Request' => $params,
+            'Response' => $result,
+        ]), [], 'sysReq');
     }
-
 }

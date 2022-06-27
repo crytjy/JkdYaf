@@ -1,14 +1,18 @@
 <?php
 /**
- * 配置类
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
 namespace Conf;
 
 class JkdConf
 {
-
     /**
-     * 获取配置
+     * 获取配置.
      *
      * @param string $name 配置文件名称
      * @param false $isEnv 是否区分环境
@@ -16,8 +20,9 @@ class JkdConf
      */
     public static function get($name, $isEnv = true)
     {
-        if (!$name)
+        if (! $name) {
             return false;
+        }
 
         $list = explode('.', $name);
         $fileName = $list[0];
@@ -27,17 +32,12 @@ class JkdConf
         if ($isEnv != true) {
             if ($key) {
                 return $config->get($key);
-            } else {
-                return $config;
             }
-        } else {
-            if ($key) {
-                return $config[environ()]->get($key);
-            } else {
-                return $config[environ()];
-            }
+            return $config;
         }
+        if ($key) {
+            return $config[environ()]->get($key);
+        }
+        return $config[environ()];
     }
-
-
 }

@@ -1,29 +1,28 @@
 <?php
 /**
- * Redis 操作类
+ * This file is part of JkdYaf.
  *
- * @author JKD
- * @date 2021年04月10日 16:38
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Cache;
 
 class Redis
 {
-
     /**
-     * Redis连接池实例
+     * Redis连接池实例.
      */
     private $pool;
 
     /**
-     * 是否归还了链接
+     * 是否归还了链接.
      */
     private $returnStatus = false;
 
-
     /**
-     * 选择连接池
+     * 选择连接池.
      *
      * Redis constructor.
      */
@@ -32,9 +31,8 @@ class Redis
         $this->pool = \Pool\JkdRedisPool::run()->pop();
     }
 
-
     /**
-     * 利用析构函数，防止有漏掉没归还的连接，让其自动回收，减少不规范的开发者
+     * 利用析构函数，防止有漏掉没归还的连接，让其自动回收，减少不规范的开发者.
      */
     public function __destruct()
     {
@@ -43,15 +41,13 @@ class Redis
         }
     }
 
-
     public function get()
     {
         return $this->pool;
     }
 
-
     /**
-     * 归还连接池
+     * 归还连接池.
      *
      * @return mixed
      */
@@ -60,5 +56,4 @@ class Redis
         $this->returnStatus = true;
         return \Pool\JkdRedisPool::run()->free($this->pool);
     }
-
 }

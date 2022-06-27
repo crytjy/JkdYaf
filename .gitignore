@@ -1,2 +1,4 @@
-/yaf/runtime/log/
 .idea
+/yaf/vendor/
+/yafLibrary/vendor/
+/yaf/runtime/

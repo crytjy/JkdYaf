@@ -1,24 +1,28 @@
 <?php
+/**
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
+ */
 namespace Com;
-
-use Log\JkdLog;
 
 class TestAop
 {
-
     public function test1()
     {
-        JkdLog::channel('aop', 'AOP1111');
+        \SeasLog::info('AOP1111', [], 'aop');
     }
 
     public function test2()
     {
-        JkdLog::channel('aop', 'AOP2222');
+        \SeasLog::info('AOP2222', [], 'aop');
     }
 
     public function test3()
     {
-        JkdLog::channel('aop', 'AOP3333');
+        \SeasLog::info('AOP3333', [], 'aop');
     }
-
 }

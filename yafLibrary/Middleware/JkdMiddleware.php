@@ -1,14 +1,14 @@
 <?php
 /**
- * @name JkdMiddleware
- * @deprecated 中间价
- * @author JKD
- * @date 2021年10月24日 03:12
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Middleware;
 
-use Log\JkdLog;
 use Route\JkdRoute;
 
 class JkdMiddleware
@@ -25,20 +25,16 @@ class JkdMiddleware
      */
     public static function get()
     {
-        if (!self::$instance) {
+        if (! self::$instance) {
             self::$instance = new JkdMiddleware();
         }
         return self::$instance;
     }
 
-
     public function handle()
     {
-        $middlewareArr = JkdRoute::get()->getRouteMiddleware();
-        JkdLog::info('ss', $middlewareArr);
-
+        $middlewareArr = JkdRoute::get()->getRouteType('middleware');
         foreach ($middlewareArr as $type => $middleware) {
-            JkdLog::info($type, $middleware);
             foreach ($middleware as $middle) {
                 if ($type == 'app') {
                     $className = 'app\middleware\\' . $middle;
@@ -50,5 +46,4 @@ class JkdMiddleware
             }
         }
     }
-
 }

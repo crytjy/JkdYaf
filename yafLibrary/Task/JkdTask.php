@@ -1,18 +1,22 @@
 <?php
-
+/**
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
+ */
 namespace Task;
 
 use Swoole\Timer;
 
 class JkdTask
 {
-
     /**
      * 分发一个任务
      *
      * @param $taskClass
-     * @param array $data
-     * @return int
      */
     public static function dispatch($taskClass, array $data = []): int
     {
@@ -22,13 +26,10 @@ class JkdTask
         });
     }
 
-
     /**
      * 延迟分发任务
      *
      * @param $taskClass
-     * @param int $ms
-     * @param array $data
      */
     public static function delay($taskClass, int $ms, array $data = []): int
     {
@@ -38,33 +39,24 @@ class JkdTask
         });
     }
 
-
     /**
      * 定时任务
      *
      * @param $taskClass
-     * @param int $ms
-     * @param array $data
-     * @return int
      */
     public static function tick($taskClass, int $ms, array $data = []): int
     {
         $clas = new $taskClass();
         return Timer::tick($ms, function () use ($clas, $data) {
-            $clas->task($data);
+            $clas->handle($data);
         });
     }
 
-
     /**
      * 清除任务
-     *
-     * @param int $timerId
-     * @return bool
      */
     public static function clear(int $timerId): bool
     {
         return Timer::clear($timerId);
     }
-
 }

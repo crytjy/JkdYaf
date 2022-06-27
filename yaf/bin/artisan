@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+
+define('DS', DIRECTORY_SEPARATOR);
+define('APP_PATH', dirname(__DIR__));
+define('CONF_PATH', APP_PATH . DS . 'conf');
+
+$config = parse_ini_file(CONF_PATH . '/app.ini', true);
+$libPath = $config['common']['comLibsPath'] ?? '';
+define('LIB_PATH', $libPath);
+require $libPath . 'Commands/Command.php';
+
+$serverObj = new \Commands\Command();
+$serverObj->handle($argv);

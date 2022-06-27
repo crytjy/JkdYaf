@@ -1,20 +1,28 @@
 <?php
 /**
- * Aop
+ * This file is part of JkdYaf.
  *
- * Class AOP
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Aop;
+
+use Route\JkdRoute;
 
 class JkdAop
 {
+    public const AopType = [
+        'AopBefore',
+        'AopAfter',
+        'AopAround',
+    ];
+
     /**
      * @var JkdAop
      */
     private static $instance;
-
-    private static $aopList;
 
     /**
      * Get the instance of JkdAop.
@@ -23,56 +31,70 @@ class JkdAop
      */
     public static function get()
     {
-        if (!self::$instance) {
+        if (! self::$instance) {
             self::$instance = new JkdAop();
         }
         return self::$instance;
     }
 
-
     /**
-     * 获取AOP列表
+     * 获取Aop.
      *
-     * @throws \ReflectionException
+     * @param $reflection
      */
-    public function getAopParser()
+    public function getAttributeData($reflection): array
     {
-        $yafRequest = $GLOBALS['YAF_HTTP_REQUEST'];
-        $moduleName = $yafRequest->module ?? '';
-        $controllerName = $yafRequest->controller ?? '';
-        $className = $controllerName . 'Controller' ?? '';
-        $functionName = $yafRequest->action . 'Action' ?? '';
-        \Yaf\Loader::import(APP_PATH . '/app/modules/' . $moduleName . '/controllers/' . $controllerName . '.php');
-        $ref = new \ReflectionMethod($className, $functionName);
-        $doc = $ref->getDocComment();
-        $docParser = new DocParser();
-        self::$aopList = $docParser->parse($doc);
+        $jkdAop = [];
+        $attributes = $reflection->getAttributes();
+        foreach ($attributes as $attribute) {
+            $aopType = $attribute->getName();
+            if (in_array($aopType, self::AopType)) {
+                $jkdAop[$aopType][] = $attribute->getArguments();
+            }
+        }
 
-        return true;
+        return $jkdAop;
     }
 
+    /**
+     * 获取AOP列表.
+     *
+     * @param $moduleName
+     * @param $controllerName
+     * @param $actionName
+     * @throws \ReflectionException
+     * @return array
+     */
+    public function getAopParser($moduleName, $controllerName, $actionName)
+    {
+        $className = $controllerName . 'Controller' ?? '';
+        $functionName = $actionName . 'Action' ?? '';
+
+        \Yaf\Loader::import(APP_PATH . '/app/modules/' . $moduleName . '/controllers/' . $controllerName . '.php');
+
+        $ref = new \ReflectionMethod($className, $functionName);
+
+        return $this->getAttributeData($ref);
+    }
 
     /**
-     * 启动AOP
+     * 启动AOP.
      *
      * @param $type
      * @return bool
      */
     public function runAop($type)
     {
-        $list = self::$aopList[$type] ?? [];
-        if ($list) {
-            foreach ($list as $li) {
-                $thisClass = $li['class'] ?? '';
-                $thisFunction = $li['function'] ?? '';
-                if ($thisClass && $thisFunction) {
-                    $thisInstance = new $thisClass();
-                    $thisInstance->$thisFunction();
-                }
+        $list = JkdRoute::get()->getRouteType('aop')[$type] ?? [];
+        foreach ($list as $li) {
+            $thisClass = $li[0] ?? '';
+            $thisFunction = $li[1] ?? '';
+            if ($thisClass && $thisFunction) {
+                $thisInstance = new $thisClass();
+                $thisInstance->{$thisFunction}();
             }
         }
 
         return true;
     }
-
 }

@@ -1,14 +1,13 @@
 <?php
 /**
- * @name JkdRoute
- * @author JKD
- * @date 2021年10月24日 02:58
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Route;
-
-
-use Log\JkdLog;
 
 class JkdRoute
 {
@@ -26,55 +25,58 @@ class JkdRoute
      */
     public static function get()
     {
-        if (!self::$instance) {
+        if (! self::$instance) {
             self::$instance = new JkdRoute();
             self::$routeList = \Yaf\Registry::get('JkdRouteList');
         }
         return self::$instance;
     }
 
-
-    public function getRoutePrefixs()
+    public function getRoutePrefixs(): array
     {
         return \Yaf\Registry::get('JkdRoutePrefixList');
     }
 
+    public function getRouteList(): array
+    {
+        return self::$routeList;
+    }
 
     /**
-     * 获取路由信息
-     *
-     * @param $uri
-     * @return array|mixed
+     * 获取路由信息.
      */
-    public function getRoute($uri)
+    public function getRoute(string $uri): array
     {
         return self::$routeList[$uri] ?? [];
     }
 
-
     /**
-     * 检查路由是否存在
-     *
-     * @param $uri
-     * @return bool
+     * 检查路由是否存在.
      */
-    public function checkRouteExist($uri)
+    public function checkRouteExist(string $uri): bool
     {
         return isset(self::$routeList[$uri]) ? true : false;
     }
 
-
     /**
-     * 获取路由中间价
+     * 获取路由值.
      *
-     * @param $uri
-     * @return array|mixed
+     * @param $key
      */
-    public function getRouteMiddleware()
+    public function getRouteType($key): array
     {
-        $serverData = $GLOBALS['REQUEST_SERVER'];
-        $route = $serverData['request_uri'] ?? '';  //客户端请求的路由
-        return self::$routeList[$route]['middleware'] ?? [];
+        $route = $this->getRouteUri();
+        return self::$routeList[$route][$key] ?? [];
     }
 
+    /**
+     * 客户端请求的路由.
+     *
+     * @return mixed|string
+     */
+    public function getRouteUri()
+    {
+        $serverData = getJkdYafParams('JKDYAF_REQ')->server;
+        return $serverData['request_uri'] ?? '';  // 客户端请求的路由
+    }
 }

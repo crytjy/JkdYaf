@@ -1,8 +1,11 @@
 <?php
 /**
- * 控制器
+ * This file is part of JkdYaf.
  *
- * Class JkdBaseController
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
 namespace Jkd;
 
@@ -14,10 +17,7 @@ class JkdBaseController extends \Yaf\Controller_Abstract
     {
         if ($isAuto) {
             $thisService = getService();
-            $this->JkdService = new $thisService;
+            $this->JkdService = new $thisService();
         }
     }
-
-
-
 }

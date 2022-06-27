@@ -1,123 +1,183 @@
 <?php
 /**
- * @name JkdRouter
- * @author JKD
- * @date 2021年10月24日 02:50
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Route;
 
 use Jkd\JkdResponse;
+use Limit\RouteLimit;
+use Middleware\RouteMiddleware;
 
 class JkdRouter
 {
-    private $routeList = [];
-    private $routePrefixList = [];
-
-    public function handle()
-    {
-        $this->getRoutes();
-
-        \Yaf\Registry::set('JkdRouteList', $this->routeList);
-        \Yaf\Registry::set('JkdRoutePrefixList', $this->routePrefixList);
-    }
-
+    public static $action = [];
 
     /**
-     * 获取路由
+     * 上次路由限流
      *
-     * @return array
+     * @var string
      */
-    private function getRoutes()
-    {
-        $routeIniConf = \Conf\JkdConf::get('route', false);
-        $middlewareConfig = $routeIniConf ? $routeIniConf['middlewareGroup'] : [];
-        $routeConfig = $routeIniConf ? $routeIniConf['route'] : [];
-
-        $routeIniConf = null;
-        foreach ($routeConfig as $route => $routeConf) {
-            $this->routePrefixList[] = $route;
-            if (!file_exists(APP_PATH . '/conf/routes/' . $route . '.ini')) {
-                JkdResponse::Error('The Route Not Found: ' . $route . '.ini');
-            }
-            $thisRouteConf = \Conf\JkdConf::get('routes/' . $route, false);
-
-            foreach ($thisRouteConf as $uri => $thisRoute) {
-                if (isset($middlewareConfig[$uri]) && $middlewareConfig[$uri]) {
-                    $thisMiddlewareRoutes = $thisRoute;
-                    $thisRoute = null;
-                    $thisMiddlewareList = $this->getMiddleware($routeConf['middleware'] ?? '', $middlewareConfig[$uri]);
-                    foreach ($thisMiddlewareRoutes as $url => $thisMiddlewareRoute) {
-                        foreach ($thisMiddlewareRoute as $method => $route) {
-                            $this->addRoute('/' . $routeConf['prefix'] . '/' . $url, $method, '/' . $routeConf['modules'] . $route, $thisMiddlewareList);
-                        }
-                    }
-                } else {
-                    $thisMiddlewareList = $this->getMiddleware($routeConf['middleware'] ?? '');
-                    foreach ($thisRoute as $method => $route) {
-                        $this->addRoute('/' . $routeConf['prefix'] . '/' . $uri, $method, '/' . $routeConf['modules'] . $route, $thisMiddlewareList);
-                    }
-                }
-            }
-            $thisRouteConf = null;
-        }
-        $middlewareConfig = null;
-        $routeConfig = null;
-    }
-
+    public static $lastRouteUri = '';
 
     /**
-     * 获取中间件
+     * All of the verbs supported by the router.
      *
-     * @param $routeMiddleware
-     * @param string $middleware
-     * @return array|string[]
+     * @var string[]
      */
-    private function getMiddleware($routeMiddleware, $middleware = '')
-    {
-        if ($middleware) {
-            $routeMiddleware .= ',' . $middleware;
-        }
-        $thisMiddlewareArr = $routeMiddleware ? explode(',', $routeMiddleware) : [];
-        $thisMiddlewareList = array_map(function ($thisMiddleware) {
-            return trim($thisMiddleware);
-        }, $thisMiddlewareArr);
+    private static $verbs = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
 
-        return $thisMiddlewareList;
+    public function __construct()
+    {
+        self::$lastRouteUri = '';
     }
 
+    /**
+     * Register a new GET route with the router.
+     *
+     * @return bool
+     */
+    public function get(string $uri, array $action = [])
+    {
+        return $this->addRoute(['GET', 'HEAD'], $uri, $action);
+    }
 
     /**
-     * 添加路由
+     * Register a new POST route with the router.
      *
-     * @param string $route
-     * @param string $method
-     * @param string $action
-     * @param array $middlewareList
+     * @return bool
      */
-    private function addRoute(string $route, string $method, string $action, array $middlewareList)
+    public function post(string $uri, array $action = [])
     {
-        $middleware = [
-            'app' => [],
-            'com' => []
-        ];
-        foreach ($middlewareList as $middlewareClass) {
-            if ($middlewareClass) {
-                if (file_exists(APP_PATH . '/app/middleware/' . $middlewareClass . '.php')) {
-                    $middleware['app'][] = $middlewareClass;
-                } elseif (file_exists(LIB_PATH . '/Middleware/' . $middlewareClass . '.php')) {
-                    $middleware['com'][] = $middlewareClass;
-                } else {
-                    JkdResponse::Error('The Middleware Not Found: ' . $middlewareClass);
-                }
-            }
+        return $this->addRoute('POST', $uri, $action);
+    }
+
+    /**
+     * Register a new PUT route with the router.
+     *
+     * @return bool
+     */
+    public function put(string $uri, array $action = [])
+    {
+        return $this->addRoute('PUT', $uri, $action);
+    }
+
+    /**
+     * Register a new PATCH route with the router.
+     *
+     * @return bool
+     */
+    public function patch(string $uri, array $action = [])
+    {
+        return $this->addRoute('PATCH', $uri, $action);
+    }
+
+    /**
+     * Register a new DELETE route with the router.
+     *
+     * @return bool
+     */
+    public function delete(string $uri, array $action = [])
+    {
+        return $this->addRoute('DELETE', $uri, $action);
+    }
+
+    /**
+     * Register a new OPTIONS route with the router.
+     *
+     * @return bool
+     */
+    public function options(string $uri, array $action = [])
+    {
+        return $this->addRoute('OPTIONS', $uri, $action);
+    }
+
+    /**
+     * Register a new route responding to all verbs.
+     *
+     * @return bool
+     */
+    public function any(string $uri, array $action = [])
+    {
+        return $this->addRoute(self::$verbs, $uri, $action);
+    }
+
+    public function clear()
+    {
+        self::$action = [];
+    }
+
+    /**
+     * 限流
+     *
+     * @return $this
+     */
+    public function limit(int $minute = 1, int $limit = 60): object|array
+    {
+        RouteLimit::limit($minute, $limit);
+        return $this;
+    }
+
+    /**
+     * Register middleware with the router.
+     */
+    public function middleware(array|string $middleware = null): object|array
+    {
+        RouteMiddleware::middleware($middleware);
+        return $this;
+    }
+
+    /**
+     * Add a route to the underlying route.
+     *
+     * @return bool
+     */
+    private function addRoute(string|array $method, string $uri, array $action): object
+    {
+        if (! is_array($action)) {
+            return false;
         }
 
-        $this->routeList[$route] = [
+        if (! is_array($method)) {
+            $method = (array) $method;
+        }
+
+        $class = $action[0] ?? '';
+        $func = $action[1] ?? '';
+
+        if (! $class || ! $func) {
+            return false;
+        }
+
+        $classFunc = $this->getAction($class, $func);
+
+        self::$action[$uri] = [
             'method' => $method,
-            'action' => $action,
-            'middleware' => $middleware
+            'action' => $classFunc,
+            'middleware' => RouteMiddleware::$middlewareArr ?: (self::$action[$uri]['middleware'] ?? []),
+            'limit' => RouteLimit::$lastRouteLimit ?? [],
         ];
+
+        self::$lastRouteUri = $uri;
+        RouteLimit::$lastRouteLimit = [];
+        RouteMiddleware::$middlewareArr = [];
+
+        return $this;
     }
 
+    /**
+     * Get Class Function Route.
+     */
+    private function getAction(string $class, string $func): string
+    {
+        $class = explode('Controller', $class)[0] ?? '';
+        if (! $class) {
+            JkdResponse::Error('The Action Not Found: ' . $class);
+        }
+        return '/' . $class . '/' . $func;
+    }
 }

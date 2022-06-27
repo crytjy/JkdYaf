@@ -1,28 +1,27 @@
 <?php
-
-include __DIR__ . "/ConsoleTable.php";
+/**
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
+ */
+include __DIR__ . '/ConsoleTable.php';
 
 class Jkd
 {
+    public const RED_FONT = '0;31';
 
-    const RED_FONT = '0;31';
-    const GREEN_FONT = '0;32';
-    const YELLOW_FONT = '0;33';
-    const BLUE_FONT = '0;34';
-    const LIGHT_BLUE_FONT = '1;34';
-    const WHITE_FONT = '1;37';
+    public const GREEN_FONT = '0;32';
 
-    /**
-     * 设置颜色
-     *
-     * @param $str
-     * @param $color
-     * @return string
-     */
-    private static function setFont($str, $color)
-    {
-        return "\033[" . $color . "m" . $str . "\033[0m";
-    }
+    public const YELLOW_FONT = '0;33';
+
+    public const BLUE_FONT = '0;34';
+
+    public const LIGHT_BLUE_FONT = '1;34';
+
+    public const WHITE_FONT = '1;37';
 
     public static function start($ip, $port, $daemonize)
     {
@@ -52,6 +51,81 @@ class Jkd
         return true;
     }
 
+    public static function reqMsg($_startTime, $_endTime, $status, $serverData, $ip)
+    {
+        $time = changeReqTime($_endTime - $_startTime);
+        $num = 10 - mb_strlen($time);
+        if ($num > 0) {
+            for ($i = 0; $i < $num; ++$i) {
+                $time .= ' ';
+            }
+        }
+
+        $num = 15 - mb_strlen($ip);
+        if ($num > 0) {
+            for ($i = 0; $i < $num; ++$i) {
+                $ip .= ' ';
+            }
+        }
+
+        $str = '[JkdYaf] ' . date('Y/m/d-H:i:s', (int) $_startTime) .
+            ' | ' . self::getStatusTxt($status) .
+            ' | ' . $time .
+            ' | ' . $ip .
+            ' | ' . self::getMethodTxt($serverData['request_method']) .
+            ' "' . $serverData['request_uri'] . (isset($serverData['query_string']) ? ('?' . $serverData['query_string']) : '') . '"';
+        echo $str . PHP_EOL;
+    }
+
+    public static function getMethodTxt($method)
+    {
+        switch ($method) {
+            case 'GET':
+                $color = self::BLUE_FONT;
+                break;
+            case 'POST':
+                $color = self::LIGHT_BLUE_FONT;
+                break;
+            default:
+                $color = self::YELLOW_FONT;
+                break;
+        }
+
+        return self::setFont($method, $color);
+    }
+
+    public static function getStatusTxt($status)
+    {
+        switch ($status) {
+            case 200:
+                $color = self::GREEN_FONT;
+                break;
+            case 404:
+                $color = self::WHITE_FONT;
+                break;
+            case 500:
+                $color = self::RED_FONT;
+                break;
+            default:
+                $color = self::YELLOW_FONT;
+                break;
+        }
+
+        return self::setFont($status, $color);
+    }
+
+    /**
+     * 设置颜色.
+     *
+     * @param $str
+     * @param $color
+     * @return string
+     */
+    private static function setFont($str, $color)
+    {
+        return "\033[" . $color . 'm' . $str . "\033[0m";
+    }
+
     private static function getTitle()
     {
         $str = '
@@ -62,17 +136,16 @@ class Jkd
 \____/_/ |_/_____/ /_/_/  |_/_/
         ' . PHP_EOL;
 
-        echo self::setFont($str, self::GREEN_FONT);;
+        echo self::setFont($str, self::GREEN_FONT);
     }
-
 
     private static function getComponents($ip, $port, $daemonize)
     {
-        $phpVer = PHP_VERSION;  //php版本
-        $swooleVer = SWOOLE_VERSION;    //swoole版本
-        $yafVer = Yaf\VERSION;  //yaf版本
-        $yacVer = phpversion('yac');    //yac版本
-        $jkdYarVer = JKDYAF_VERSION;    //JkdYaf版本
+        $phpVer = PHP_VERSION;  // php版本
+        $swooleVer = SWOOLE_VERSION;    // swoole版本
+        $yafVer = Yaf\VERSION;  // yaf版本
+        $yacVer = phpversion('yac');    // yac版本
+        $jkdYarVer = JKDYAF_VERSION;    // JkdYaf版本
 
         $str1 = self::setFont('>>> Components', self::YELLOW_FONT);
         echo $str1 . PHP_EOL;
@@ -99,73 +172,4 @@ class Jkd
         );
         echo PHP_EOL;
     }
-
-
-    public static function reqMsg($_startTime, $_endTime, $status)
-    {
-        $serverData = $GLOBALS['REQUEST_SERVER'];
-        $time = changeReqTime($_endTime - $_startTime);
-        $num = 10 - mb_strlen($time);
-        if ( $num > 0 ) {
-            for ($i = 0; $i < $num; $i ++) {
-                $time .= ' ';
-            }
-        }
-
-        $ip = getClientIp() ?: '-';
-        $num = 15 - mb_strlen($ip);
-        if ( $num > 0 ) {
-            for ($i = 0; $i < $num; $i ++) {
-                $ip .= ' ';
-            }
-        }
-
-        $str = '[JkdYaf] ' . date('Y/m/d-H:i:s', $_startTime) .
-            ' | ' . self::getStatusTxt($status) .
-            ' | ' . $time .
-            ' | ' . $ip .
-            ' | ' . self::getMethodTxt($serverData['request_method']) .
-            ' "' . $serverData['request_uri'] . (isset($serverData['query_string']) ? ('?' . $serverData['query_string']) : '') . '"';
-        echo $str . PHP_EOL;
-    }
-
-
-    public static function getMethodTxt($method)
-    {
-        switch ($method) {
-            case 'GET':
-                $color = self::BLUE_FONT;
-                break;
-            case 'POST':
-                $color = self::LIGHT_BLUE_FONT;
-                break;
-            default:
-                $color = self::YELLOW_FONT;
-                break;
-        }
-
-        return self::setFont($method, $color);
-    }
-
-
-    public static function getStatusTxt($status)
-    {
-        switch ($status) {
-            case 200:
-                $color = self::GREEN_FONT;
-                break;
-            case 404:
-                $color = self::WHITE_FONT;
-                break;
-            case 500:
-                $color = self::RED_FONT;
-                break;
-            default:
-                $color = self::YELLOW_FONT;
-                break;
-        }
-
-        return self::setFont($status, $color);
-    }
-
 }

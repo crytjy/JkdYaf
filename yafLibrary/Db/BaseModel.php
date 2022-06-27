@@ -1,31 +1,32 @@
 <?php
 /**
- * 基础模型类
+ * This file is part of JkdYaf.
  *
- * Class BaseModel
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Db;
-
-use \Db\Factory;
 
 class BaseModel
 {
-
     protected $db;
+
     protected $table;
+
     protected $fillAble = [];
+
     protected $selectAble = [];
 
     public function __construct(string $dbName = '')
     {
         if ($dbName) {
-            $this->db = Factory::create('db');
+            $this->db = Factory::create($dbName);
         } else {
             $this->db = Factory::getPool();
         }
     }
-
 
     /**
      * 获取sql语句与数值
@@ -38,7 +39,7 @@ class BaseModel
      */
     public function dumpSql($where = [], $select = [], $order = '', $sort = '')
     {
-        if (!$select) {
+        if (! $select) {
             $selectAble = $this->selectAble ? '`' . implode('`, `', $this->selectAble) . '`' : '*';
         } else {
             $selectAble = implode('`, `', $select);
@@ -48,7 +49,7 @@ class BaseModel
         if ($where) {
             $wheres = '';
             foreach ($where as $c => $v) {
-                $wheres .= ($wheres ? "AND" : "") . " `$c` = ? ";
+                $wheres .= ($wheres ? 'AND' : '') . " `{$c}` = ? ";
                 $values[] = $v;
             }
             $sql .= ' WHERE' . $wheres;
@@ -61,9 +62,8 @@ class BaseModel
         return [$sql, $values];
     }
 
-
     /**
-     * 获取一条数据数据
+     * 获取一条数据数据.
      *
      * @param array $where
      * @param array $select
@@ -73,15 +73,14 @@ class BaseModel
      */
     public function get($where = [], $select = [], $order = '', $sort = '')
     {
-        list($sql, $values) = $this->dumpSql($where, $select, $order, $sort);
+        [$sql, $values] = $this->dumpSql($where, $select, $order, $sort);
 
         $res = $this->db->getRow($sql, $values);
         return $res ?? '';
     }
 
-
     /**
-     * 获取所有数据
+     * 获取所有数据.
      *
      * @param array $where
      * @param array $select
@@ -91,14 +90,13 @@ class BaseModel
      */
     public function all($where = [], $select = [], $order = '', $sort = '')
     {
-        list($sql, $values) = $this->dumpSql($where, $select, $order, $sort);
+        [$sql, $values] = $this->dumpSql($where, $select, $order, $sort);
         $res = $this->db->getAll($sql, $values);
         return $res ?? '';
     }
 
-
     /**
-     * 新增
+     * 新增.
      *
      * @param array $data 添加数组
      * @param false $isFillFilter 是否过滤数组
@@ -109,9 +107,8 @@ class BaseModel
         return $this->db->insert($this->table, $isFillFilter == true ? array_only($data, $this->fillAble) : $data);
     }
 
-
     /**
-     * 更新
+     * 更新.
      *
      * @param array $data 更新数组
      * @param array $where 条件
@@ -124,14 +121,12 @@ class BaseModel
     }
 
     /**
-     * 删除
+     * 删除.
      *
-     * @param array $where
      * @return bool
      */
     public function deleteSql(array $where = [])
     {
         return $this->db->delete($this->table, $where);
     }
-
 }

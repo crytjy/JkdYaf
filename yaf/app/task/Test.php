@@ -1,14 +1,20 @@
 <?php
-
+/**
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
+ */
 namespace app\task;
 
-use Log\JkdLog;
 use Task\JkdTaskInterface;
 
 class Test implements JkdTaskInterface
 {
     public function handle($params)
     {
-        JkdLog::info('ssss', $params);
+        \SeasLog::info('taskTest' . json_encode($params));
     }
 }

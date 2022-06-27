@@ -1,33 +1,23 @@
 <?php
 /**
- * @author JKD
- * @date 2021年08月03日 23:50
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 class IndexController extends \Jkd\JkdBaseController
 {
-
-    /**
-     * Index
-     *
-     * @AopBefore(Com\TestAop, test1)
-     * @AopAfter(Com\TestAop, test2)
-     * @AopAround(Com\TestAop, test3)
-     *
-     * @return mixed
-     */
+    #[
+        Describe('Index'),
+        AopBefore(\Com\TestAop::class, 'test1'),
+        AopBefore('Com\\TestAop', 'test2'),
+        AopAfter('Com\TestAop', 'test2'),
+        AopAround(\Com\TestAop::class, 'test3')
+    ]
     public function indexAction()
     {
         return $this->JkdService->index();
-    }
-
-    public function taskAction()
-    {
-        return $this->JkdService->task();
-    }
-
-    public function articleAction()
-    {
-        return $this->JkdService->article();
     }
 }

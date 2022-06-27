@@ -1,11 +1,12 @@
 <?php
 /**
- * @name JkdAuth
- * @deprecated 登陆验证中间价
- * @author JKD
- * @date 2021年10月24日 10:54
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Middleware;
 
 use Auth\JwtAuth;
@@ -13,21 +14,19 @@ use Jkd\JkdResponse;
 
 class JkdAuth
 {
-
     public function handle()
     {
-        //请求参数
-        $params = \Yaf\Registry::get('REQUEST_PARAMS');
+        // 请求参数
+        $params = getJkdYafParams('JKDYAF_PARAMS');
         $token = $params['token'] ?? '';
-        if (!$token) {
+        if (! $token) {
             JkdResponse::Fail('Missing Token');
         }
         $userKey = JwtAuth::checkToken($token);
-        if (!$userKey) {
+        if (! $userKey) {
             JkdResponse::Fail('Invalid Token');
         }
 
         return true;
     }
-
 }

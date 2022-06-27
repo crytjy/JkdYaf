@@ -1,16 +1,18 @@
 <?php
-
+/**
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
+ */
 namespace app\middleware;
-
-use Log\JkdLog;
 
 class Test
 {
-
     public function handle()
     {
-        JkdLog::channel('middleware', 'middleware', 'test');
+        \SeasLog::info('test', [], 'middleware');
     }
-
-
 }

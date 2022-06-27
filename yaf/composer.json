@@ -1,0 +1,16 @@
+{
+    "name": "jkd/jkdyaf",
+    "description": "The project of JkdYaf !",
+    "autoload": {
+        "psr-4": {
+            "Jkd\\Jkdyaf\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "JKDCRY",
+            "email": "13723794923@163.com"
+        }
+    ],
+    "require": {}
+}

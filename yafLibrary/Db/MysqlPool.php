@@ -1,28 +1,27 @@
 <?php
 /**
- * Mysql 操作类
+ * This file is part of JkdYaf.
  *
- * @author JKD
- * @date 2021年10月20日 23:40
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Db;
 
 use Pool\JkdMysqlPool;
 
 class MysqlPool extends MysqlHandle
 {
+    /**
+     * 是否归还了链接.
+     */
+    public $returnStatus = false;
 
     private static $_instances;
 
     /**
-     * 是否归还了链接
-     */
-    public $returnStatus = false;
-
-
-    /**
-     * 选择连接池
+     * 选择连接池.
      *
      * Redis constructor.
      */
@@ -31,9 +30,8 @@ class MysqlPool extends MysqlHandle
         $this->_dbh = JkdMysqlPool::run()->pop();
     }
 
-
     /**
-     * 利用析构函数，防止有漏掉没归还的连接，让其自动回收，减少不规范的开发者
+     * 利用析构函数，防止有漏掉没归还的连接，让其自动回收，减少不规范的开发者.
      */
     public function __destruct()
     {
@@ -42,27 +40,23 @@ class MysqlPool extends MysqlHandle
         }
     }
 
-
-    static public function getInstance()
+    public static function getInstance()
     {
         self::$_instances = new MysqlPool();
         return self::$_instances;
     }
-
 
     public function get()
     {
         return $this->_dbh;
     }
 
-
     /**
-     * 归还连接池
+     * 归还连接池.
      */
     public function put()
     {
         $this->returnStatus = true;
         JkdMysqlPool::run()->free($this->_dbh);
     }
-
 }

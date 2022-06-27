@@ -1,11 +1,17 @@
 <?php
-
+/**
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
+ */
 define('CONSOLE_TABLE_HORIZONTAL_RULE', 1);
 define('CONSOLE_TABLE_ALIGN_LEFT', -1);
 define('CONSOLE_TABLE_ALIGN_CENTER', 0);
 define('CONSOLE_TABLE_ALIGN_RIGHT', 1);
 define('CONSOLE_TABLE_BORDER_ASCII', -1);
-
 
 class ConsoleTable
 {
@@ -14,132 +20,133 @@ class ConsoleTable
      *
      * @var array
      */
-    var $_headers = array();
+    public $_headers = [];
 
     /**
      * The data of the table.
      *
      * @var array
      */
-    var $_data = array();
+    public $_data = [];
 
     /**
      * The maximum number of columns in a row.
      *
-     * @var integer
+     * @var int
      */
-    var $_max_cols = 0;
+    public $_max_cols = 0;
 
     /**
      * The maximum number of rows in the table.
      *
-     * @var integer
+     * @var int
      */
-    var $_max_rows = 0;
+    public $_max_rows = 0;
 
     /**
      * Lengths of the columns, calculated when rows are added to the table.
      *
      * @var array
      */
-    var $_cell_lengths = array();
+    public $_cell_lengths = [];
 
     /**
      * Heights of the rows.
      *
      * @var array
      */
-    var $_row_heights = array();
+    public $_row_heights = [];
 
     /**
      * How many spaces to use to pad the table.
      *
-     * @var integer
+     * @var int
      */
-    var $_padding = 1;
+    public $_padding = 1;
 
     /**
      * Column filters.
      *
      * @var array
      */
-    var $_filters = array();
+    public $_filters = [];
 
     /**
      * Columns to calculate totals for.
      *
      * @var array
      */
-    var $_calculateTotals;
+    public $_calculateTotals;
 
     /**
      * Alignment of the columns.
      *
      * @var array
      */
-    var $_col_align = array();
+    public $_col_align = [];
 
     /**
      * Default alignment of columns.
      *
-     * @var integer
+     * @var int
      */
-    var $_defaultAlign;
+    public $_defaultAlign;
 
     /**
      * Character set of the data.
      *
      * @var string
      */
-    var $_charset = 'utf-8';
+    public $_charset = 'utf-8';
 
     /**
      * Border characters.
      * Allowed keys:
      * - intersection - intersection ("+")
      * - horizontal - horizontal rule character ("-")
-     * - vertical - vertical rule character ("|")
+     * - vertical - vertical rule character ("|").
      *
      * @var array
      */
-    var $_border = array(
+    public $_border = [
         'intersection' => '+',
         'horizontal' => '-',
         'vertical' => '|',
-    );
+    ];
 
     /**
      * If borders are shown or not
-     * Allowed keys: top, right, bottom, left, inner: true and false
+     * Allowed keys: top, right, bottom, left, inner: true and false.
      *
      * @var array
      */
-    var $_borderVisibility = array(
+    public $_borderVisibility = [
         'top' => true,
         'right' => true,
         'bottom' => true,
         'left' => true,
-        'inner' => true
-    );
-
+        'inner' => true,
+    ];
 
     /**
      * Constructor.
      *
-     * @param integer $align Default alignment. One of
-     *                         CONSOLE_TABLE_ALIGN_LEFT,
-     *                         CONSOLE_TABLE_ALIGN_CENTER or
-     *                         CONSOLE_TABLE_ALIGN_RIGHT.
-     * @param string $border The character used for table borders or
-     *                         CONSOLE_TABLE_BORDER_ASCII.
-     * @param integer $padding How many spaces to use to pad the table.
-     * @param string $charset A charset supported by the mbstring PHP
-     *                         extension.
-     * @param boolean $color Whether the data contains ansi color codes.
+     * @param int $align Default alignment. One of
+     *                   CONSOLE_TABLE_ALIGN_LEFT,
+     *                   CONSOLE_TABLE_ALIGN_CENTER or
+     *                   CONSOLE_TABLE_ALIGN_RIGHT.
+     * @param string $border the character used for table borders or
+     *                       CONSOLE_TABLE_BORDER_ASCII
+     * @param int $padding how many spaces to use to pad the table
+     * @param string $charset a charset supported by the mbstring PHP
+     *                        extension
+     * @param bool $color whether the data contains ansi color codes
      */
-    function __construct($align = CONSOLE_TABLE_ALIGN_LEFT,
-                         $border = CONSOLE_TABLE_BORDER_ASCII, $padding = 1)
-    {
+    public function __construct(
+        $align = CONSOLE_TABLE_ALIGN_LEFT,
+        $border = CONSOLE_TABLE_BORDER_ASCII,
+        $padding = 1
+    ) {
         $this->_defaultAlign = $align;
         $this->setBorder($border);
         $this->_padding = $padding;
@@ -148,20 +155,20 @@ class ConsoleTable
     /**
      * Converts an array to a table.
      *
-     * @param array $headers Headers for the table.
-     * @param array $data A two dimensional array with the table
-     *                              data.
-     * @param boolean $returnObject Whether to return the Console_Table object
-     *                              instead of the rendered table.
+     * @param array $headers headers for the table
+     * @param array $data a two dimensional array with the table
+     *                    data
+     * @param bool $returnObject whether to return the Console_Table object
+     *                           instead of the rendered table
      *
      * @static
      *
-     * @return Console_Table|string  A Console_Table object or the generated
-     *                               table.
+     * @return Console_Table|string a Console_Table object or the generated
+     *                              table
      */
-    function fromArray($headers, $data, $returnObject = false)
+    public function fromArray($headers, $data, $returnObject = false)
     {
-        if (!is_array($headers) || !is_array($data)) {
+        if (! is_array($headers) || ! is_array($data)) {
             return false;
         }
 
@@ -183,25 +190,21 @@ class ConsoleTable
      * are added. The callback function must accept a single argument, which
      * is a single table cell.
      *
-     * @param integer $col Column to apply filter to.
-     * @param mixed   &$callback PHP callback to apply.
-     *
-     * @return void
+     * @param int $col column to apply filter to
+     * @param mixed &$callback PHP callback to apply
      */
-    function addFilter($col, &$callback)
+    public function addFilter($col, &$callback)
     {
-        $this->_filters[] = array($col, &$callback);
+        $this->_filters[] = [$col, &$callback];
     }
 
     /**
      * Sets the charset of the provided table data.
      *
-     * @param string $charset A charset supported by the mbstring PHP
-     *                        extension.
-     *
-     * @return void
+     * @param string $charset a charset supported by the mbstring PHP
+     *                        extension
      */
-    function setCharset($charset)
+    public function setCharset($charset)
     {
         $locale = setlocale(LC_CTYPE, 0);
         setlocale(LC_CTYPE, 'en_US');
@@ -210,7 +213,7 @@ class ConsoleTable
     }
 
     /**
-     * Set the table border settings
+     * Set the table border settings.
      *
      * Border definition modes:
      * - CONSOLE_TABLE_BORDER_ASCII: Default border with +, - and |
@@ -219,28 +222,27 @@ class ConsoleTable
      *
      * @param mixed $border Border definition
      *
-     * @return void
      * @see $_border
      */
-    function setBorder($border)
+    public function setBorder($border)
     {
         if ($border === CONSOLE_TABLE_BORDER_ASCII) {
             $intersection = '+';
             $horizontal = '-';
             $vertical = '|';
-        } else if (is_string($border)) {
+        } elseif (is_string($border)) {
             $intersection = $horizontal = $vertical = $border;
-        } else if ($border == '') {
+        } elseif ($border == '') {
             $intersection = $horizontal = $vertical = '';
         } else {
             extract($border);
         }
 
-        $this->_border = array(
+        $this->_border = [
             'intersection' => $intersection,
             'horizontal' => $horizontal,
             'vertical' => $vertical,
-        );
+        ];
     }
 
     /**
@@ -249,10 +251,9 @@ class ConsoleTable
      * @param array $visibility Visibility settings.
      *                          Allowed keys: left, right, top, bottom, inner
      *
-     * @return void
      * @see    $_borderVisibility
      */
-    function setBorderVisibility($visibility)
+    public function setBorderVisibility($visibility)
     {
         $this->_borderVisibility = array_merge(
             $this->_borderVisibility,
@@ -266,15 +267,13 @@ class ConsoleTable
     /**
      * Sets the alignment for the columns.
      *
-     * @param integer $col_id The column number.
-     * @param integer $align Alignment to set for this column. One of
-     *                        CONSOLE_TABLE_ALIGN_LEFT
-     *                        CONSOLE_TABLE_ALIGN_CENTER
-     *                        CONSOLE_TABLE_ALIGN_RIGHT.
-     *
-     * @return void
+     * @param int $col_id the column number
+     * @param int $align Alignment to set for this column. One of
+     *                   CONSOLE_TABLE_ALIGN_LEFT
+     *                   CONSOLE_TABLE_ALIGN_CENTER
+     *                   CONSOLE_TABLE_ALIGN_RIGHT.
      */
-    function setAlign($col_id, $align = CONSOLE_TABLE_ALIGN_LEFT)
+    public function setAlign($col_id, $align = CONSOLE_TABLE_ALIGN_LEFT)
     {
         switch ($align) {
             case CONSOLE_TABLE_ALIGN_CENTER:
@@ -294,11 +293,9 @@ class ConsoleTable
      * Specifies which columns are to have totals calculated for them and
      * added as a new row at the bottom.
      *
-     * @param array $cols Array of column numbers (starting with 0).
-     *
-     * @return void
+     * @param array $cols array of column numbers (starting with 0)
      */
-    function calculateTotalsFor($cols)
+    public function calculateTotalsFor($cols)
     {
         $this->_calculateTotals = $cols;
     }
@@ -306,25 +303,21 @@ class ConsoleTable
     /**
      * Sets the headers for the columns.
      *
-     * @param array $headers The column headers.
-     *
-     * @return void
+     * @param array $headers the column headers
      */
-    function setHeaders($headers)
+    public function setHeaders($headers)
     {
-        $this->_headers = array(array_values($headers));
+        $this->_headers = [array_values($headers)];
         $this->_updateRowsCols($headers);
     }
 
     /**
      * Adds a row to the table.
      *
-     * @param array $row The row data to add.
-     * @param boolean $append Whether to append or prepend the row.
-     *
-     * @return void
+     * @param array $row the row data to add
+     * @param bool $append whether to append or prepend the row
      */
-    function addRow($row, $append = true)
+    public function addRow($row, $append = true)
     {
         if ($append) {
             $this->_data[] = array_values($row);
@@ -340,14 +333,12 @@ class ConsoleTable
      *
      * If $row_id is not given it will prepend the row.
      *
-     * @param array $row The data to insert.
-     * @param integer $row_id Row number to insert before.
-     *
-     * @return void
+     * @param array $row the data to insert
+     * @param int $row_id row number to insert before
      */
-    function insertRow($row, $row_id = 0)
+    public function insertRow($row, $row_id = 0)
     {
-        array_splice($this->_data, $row_id, 0, array($row));
+        array_splice($this->_data, $row_id, 0, [$row]);
 
         $this->_updateRowsCols($row);
     }
@@ -355,13 +346,11 @@ class ConsoleTable
     /**
      * Adds a column to the table.
      *
-     * @param array $col_data The data of the column.
-     * @param integer $col_id The column index to populate.
-     * @param integer $row_id If starting row is not zero, specify it here.
-     *
-     * @return void
+     * @param array $col_data the data of the column
+     * @param int $col_id the column index to populate
+     * @param int $row_id if starting row is not zero, specify it here
      */
-    function addCol($col_data, $col_id = 0, $row_id = 0)
+    public function addCol($col_data, $col_id = 0, $row_id = 0)
     {
         foreach ($col_data as $col_cell) {
             $this->_data[$row_id++][$col_id] = $col_cell;
@@ -374,18 +363,16 @@ class ConsoleTable
     /**
      * Adds data to the table.
      *
-     * @param array $data A two dimensional array with the table data.
-     * @param integer $col_id Starting column number.
-     * @param integer $row_id Starting row number.
-     *
-     * @return void
+     * @param array $data a two dimensional array with the table data
+     * @param int $col_id starting column number
+     * @param int $row_id starting row number
      */
-    function addData($data, $col_id = 0, $row_id = 0)
+    public function addData($data, $col_id = 0, $row_id = 0)
     {
         foreach ($data as $row) {
             if ($row === CONSOLE_TABLE_HORIZONTAL_RULE) {
                 $this->_data[$row_id] = CONSOLE_TABLE_HORIZONTAL_RULE;
-                $row_id++;
+                ++$row_id;
                 continue;
             }
             $starting_col = $col_id;
@@ -394,16 +381,14 @@ class ConsoleTable
             }
             $this->_updateRowsCols();
             $this->_max_cols = max($this->_max_cols, $starting_col);
-            $row_id++;
+            ++$row_id;
         }
     }
 
     /**
      * Adds a horizontal seperator to the table.
-     *
-     * @return void
      */
-    function addSeparator()
+    public function addSeparator()
     {
         $this->_data[] = CONSOLE_TABLE_HORIZONTAL_RULE;
     }
@@ -411,9 +396,9 @@ class ConsoleTable
     /**
      * Returns the generated table.
      *
-     * @return string  The generated table.
+     * @return string the generated table
      */
-    function getTable()
+    public function getTable()
     {
         $this->_applyFilters();
         $this->_calculateTotals();
@@ -424,10 +409,8 @@ class ConsoleTable
 
     /**
      * Calculates totals for columns.
-     *
-     * @return void
      */
-    function _calculateTotals()
+    public function _calculateTotals()
     {
         if (empty($this->_calculateTotals)) {
             return;
@@ -435,7 +418,7 @@ class ConsoleTable
 
         $this->addSeparator();
 
-        $totals = array();
+        $totals = [];
         foreach ($this->_data as $row) {
             if (is_array($row)) {
                 foreach ($this->_calculateTotals as $columnID) {
@@ -450,10 +433,8 @@ class ConsoleTable
 
     /**
      * Applies any column filters to the data.
-     *
-     * @return void
      */
-    function _applyFilters()
+    public function _applyFilters()
     {
         if (empty($this->_filters)) {
             return;
@@ -474,39 +455,35 @@ class ConsoleTable
 
     /**
      * Ensures that column and row counts are correct.
-     *
-     * @return void
      */
-    function _validateTable()
+    public function _validateTable()
     {
-        if (!empty($this->_headers)) {
+        if (! empty($this->_headers)) {
             $this->_calculateRowHeight(-1, $this->_headers[0]);
         }
 
-        for ($i = 0; $i < $this->_max_rows; $i++) {
-            for ($j = 0; $j < $this->_max_cols; $j++) {
-                if (!isset($this->_data[$i][$j]) &&
-                    (!isset($this->_data[$i]) ||
-                        $this->_data[$i] !== CONSOLE_TABLE_HORIZONTAL_RULE)) {
+        for ($i = 0; $i < $this->_max_rows; ++$i) {
+            for ($j = 0; $j < $this->_max_cols; ++$j) {
+                if (! isset($this->_data[$i][$j])
+                    && (! isset($this->_data[$i])
+                        || $this->_data[$i] !== CONSOLE_TABLE_HORIZONTAL_RULE)) {
                     $this->_data[$i][$j] = '';
                 }
-
             }
             $this->_calculateRowHeight($i, $this->_data[$i]);
 
             if ($this->_data[$i] !== CONSOLE_TABLE_HORIZONTAL_RULE) {
                 ksort($this->_data[$i]);
             }
-
         }
 
         $this->_splitMultilineRows();
 
         // Update cell lengths.
-        for ($i = 0; $i < count($this->_headers); $i++) {
+        for ($i = 0; $i < count($this->_headers); ++$i) {
             $this->_calculateCellLengths($this->_headers[$i]);
         }
-        for ($i = 0; $i < $this->_max_rows; $i++) {
+        for ($i = 0; $i < $this->_max_rows; ++$i) {
             $this->_calculateCellLengths($this->_data[$i]);
         }
 
@@ -515,36 +492,36 @@ class ConsoleTable
 
     /**
      * Splits multiline rows into many smaller one-line rows.
-     *
-     * @return void
      */
-    function _splitMultilineRows()
+    public function _splitMultilineRows()
     {
         ksort($this->_data);
-        $sections = array(&$this->_headers, &$this->_data);
-        $max_rows = array(count($this->_headers), $this->_max_rows);
-        $row_height_offset = array(-1, 0);
+        $sections = [&$this->_headers, &$this->_data];
+        $max_rows = [count($this->_headers), $this->_max_rows];
+        $row_height_offset = [-1, 0];
 
-        for ($s = 0; $s <= 1; $s++) {
+        for ($s = 0; $s <= 1; ++$s) {
             $inserted = 0;
             $new_data = $sections[$s];
-            for ($i = 0; $i < $max_rows[$s]; $i++) {
+            for ($i = 0; $i < $max_rows[$s]; ++$i) {
                 // Process only rows that have many lines.
                 $height = $this->_row_heights[$i + $row_height_offset[$s]];
                 if ($height > 1) {
                     // Split column data into one-liners.
-                    $split = array();
-                    for ($j = 0; $j < $this->_max_cols; $j++) {
-                        $split[$j] = preg_split('/\r?\n|\r/',
-                            $sections[$s][$i][$j]);
+                    $split = [];
+                    for ($j = 0; $j < $this->_max_cols; ++$j) {
+                        $split[$j] = preg_split(
+                            '/\r?\n|\r/',
+                            $sections[$s][$i][$j]
+                        );
                     }
 
-                    $new_rows = array();
+                    $new_rows = [];
                     // Construct new 'virtual' rows - insert empty strings for
                     // columns that have less lines that the highest one.
-                    for ($i2 = 0; $i2 < $height; $i2++) {
-                        for ($j = 0; $j < $this->_max_cols; $j++) {
-                            $new_rows[$i2][$j] = !isset($split[$j][$i2])
+                    for ($i2 = 0; $i2 < $height; ++$i2) {
+                        for ($j = 0; $j < $this->_max_cols; ++$j) {
+                            $new_rows[$i2][$j] = ! isset($split[$j][$i2])
                                 ? ''
                                 : $split[$j][$i2];
                         }
@@ -569,28 +546,30 @@ class ConsoleTable
     /**
      * Builds the table.
      *
-     * @return string  The generated table string.
+     * @return string the generated table string
      */
-    function _buildTable()
+    public function _buildTable()
     {
-        if (!count($this->_data)) {
+        if (! count($this->_data)) {
             return '';
         }
 
         $vertical = $this->_border['vertical'];
         $separator = $this->_getSeparator();
 
-        $return = array();
-        for ($i = 0; $i < count($this->_data); $i++) {
+        $return = [];
+        for ($i = 0; $i < count($this->_data); ++$i) {
             if (is_array($this->_data[$i])) {
-                for ($j = 0; $j < count($this->_data[$i]); $j++) {
-                    if ($this->_data[$i] !== CONSOLE_TABLE_HORIZONTAL_RULE &&
-                        $this->_strlen($this->_data[$i][$j]) <
+                for ($j = 0; $j < count($this->_data[$i]); ++$j) {
+                    if ($this->_data[$i] !== CONSOLE_TABLE_HORIZONTAL_RULE
+                        && $this->_strlen($this->_data[$i][$j]) <
                         $this->_cell_lengths[$j]) {
-                        $this->_data[$i][$j] = $this->_strpad($this->_data[$i][$j],
+                        $this->_data[$i][$j] = $this->_strpad(
+                            $this->_data[$i][$j],
                             $this->_cell_lengths[$j],
                             ' ',
-                            $this->_col_align[$j]);
+                            $this->_col_align[$j]
+                        );
                     }
                 }
             }
@@ -606,14 +585,13 @@ class ConsoleTable
                     . str_repeat(' ', $this->_padding);
                 $return[] = $row_begin
                     . implode($implode_char, $this->_data[$i]) . $row_end;
-            } else if (!empty($separator)) {
+            } elseif (! empty($separator)) {
                 $return[] = $separator;
             }
-
         }
 
         $return = implode(PHP_EOL, $return);
-        if (!empty($separator)) {
+        if (! empty($separator)) {
             if ($this->_borderVisibility['inner']) {
                 $return = $separator . PHP_EOL . $return;
             }
@@ -623,7 +601,7 @@ class ConsoleTable
         }
         $return .= PHP_EOL;
 
-        if (!empty($this->_headers)) {
+        if (! empty($this->_headers)) {
             $return = $this->_getHeaderLine() . PHP_EOL . $return;
         }
 
@@ -634,18 +612,18 @@ class ConsoleTable
      * Creates a horizontal separator for header separation and table
      * start/end etc.
      *
-     * @return string  The horizontal separator.
+     * @return string the horizontal separator
      */
-    function _getSeparator()
+    public function _getSeparator()
     {
-        if (!$this->_border) {
+        if (! $this->_border) {
             return;
         }
 
         $horizontal = $this->_border['horizontal'];
         $intersection = $this->_border['intersection'];
 
-        $return = array();
+        $return = [];
         foreach ($this->_cell_lengths as $cl) {
             $return[] = str_repeat($horizontal, $cl);
         }
@@ -665,28 +643,30 @@ class ConsoleTable
     /**
      * Returns the header line for the table.
      *
-     * @return string  The header line of the table.
+     * @return string the header line of the table
      */
-    function _getHeaderLine()
+    public function _getHeaderLine()
     {
         // Make sure column count is correct
-        for ($j = 0; $j < count($this->_headers); $j++) {
-            for ($i = 0; $i < $this->_max_cols; $i++) {
-                if (!isset($this->_headers[$j][$i])) {
+        for ($j = 0; $j < count($this->_headers); ++$j) {
+            for ($i = 0; $i < $this->_max_cols; ++$i) {
+                if (! isset($this->_headers[$j][$i])) {
                     $this->_headers[$j][$i] = '';
                 }
             }
         }
 
-        for ($j = 0; $j < count($this->_headers); $j++) {
-            for ($i = 0; $i < count($this->_headers[$j]); $i++) {
+        for ($j = 0; $j < count($this->_headers); ++$j) {
+            for ($i = 0; $i < count($this->_headers[$j]); ++$i) {
                 if ($this->_strlen($this->_headers[$j][$i]) <
                     $this->_cell_lengths[$i]) {
                     $this->_headers[$j][$i] =
-                        $this->_strpad($this->_headers[$j][$i],
+                        $this->_strpad(
+                            $this->_headers[$j][$i],
                             $this->_cell_lengths[$i],
                             ' ',
-                            $this->_col_align[$i]);
+                            $this->_col_align[$i]
+                        );
                 }
             }
         }
@@ -702,10 +682,10 @@ class ConsoleTable
             . str_repeat(' ', $this->_padding);
 
         $separator = $this->_getSeparator();
-        if (!empty($separator) && $this->_borderVisibility['top']) {
+        if (! empty($separator) && $this->_borderVisibility['top']) {
             $return[] = $separator;
         }
-        for ($j = 0; $j < count($this->_headers); $j++) {
+        for ($j = 0; $j < count($this->_headers); ++$j) {
             $return[] = $row_begin
                 . implode($implode_char, $this->_headers[$j]) . $row_end;
         }
@@ -716,11 +696,9 @@ class ConsoleTable
     /**
      * Updates values for maximum columns and rows.
      *
-     * @param array $rowdata Data array of a single row.
-     *
-     * @return void
+     * @param array $rowdata data array of a single row
      */
-    function _updateRowsCols($rowdata = null)
+    public function _updateRowsCols($rowdata = null)
     {
         // Update maximum columns.
         $this->_max_cols = max($this->_max_cols, is_array($rowdata) ? count($rowdata) : 0);
@@ -743,8 +721,8 @@ class ConsoleTable
         }
 
         // Set default column alignments
-        for ($i = 0; $i < $this->_max_cols; $i++) {
-            if (!isset($this->_col_align[$i])) {
+        for ($i = 0; $i < $this->_max_cols; ++$i) {
+            if (! isset($this->_col_align[$i])) {
                 $this->_col_align[$i] = $pad;
             }
         }
@@ -753,19 +731,19 @@ class ConsoleTable
     /**
      * Calculates the maximum length for each column of a row.
      *
-     * @param array $row The row data.
-     *
-     * @return void
+     * @param array $row the row data
      */
-    function _calculateCellLengths($row)
+    public function _calculateCellLengths($row)
     {
         if (is_array($row)) {
-            for ($i = 0; $i < count($row); $i++) {
-                if (!isset($this->_cell_lengths[$i])) {
+            for ($i = 0; $i < count($row); ++$i) {
+                if (! isset($this->_cell_lengths[$i])) {
                     $this->_cell_lengths[$i] = 0;
                 }
-                $this->_cell_lengths[$i] = max($this->_cell_lengths[$i],
-                    $this->_strlen($row[$i]));
+                $this->_cell_lengths[$i] = max(
+                    $this->_cell_lengths[$i],
+                    $this->_strlen($row[$i])
+                );
             }
         }
     }
@@ -773,14 +751,12 @@ class ConsoleTable
     /**
      * Calculates the maximum height for all columns of a row.
      *
-     * @param integer $row_number The row number.
-     * @param array $row The row data.
-     *
-     * @return void
+     * @param int $row_number the row number
+     * @param array $row the row data
      */
-    function _calculateRowHeight($row_number, $row)
+    public function _calculateRowHeight($row_number, $row)
     {
-        if (!isset($this->_row_heights[$row_number])) {
+        if (! isset($this->_row_heights[$row_number])) {
             $this->_row_heights[$row_number] = 1;
         }
 
@@ -791,24 +767,26 @@ class ConsoleTable
 
         for ($i = 0, $c = count($row); $i < $c; ++$i) {
             $lines = preg_split('/\r?\n|\r/', $row[$i]);
-            $this->_row_heights[$row_number] = max($this->_row_heights[$row_number],
-                count($lines));
+            $this->_row_heights[$row_number] = max(
+                $this->_row_heights[$row_number],
+                count($lines)
+            );
         }
     }
 
     /**
      * Returns the character length of a string.
      *
-     * @param string $str A multibyte or singlebyte string.
+     * @param string $str a multibyte or singlebyte string
      *
-     * @return integer  The string length.
+     * @return int the string length
      */
-    function _strlen($str)
+    public function _strlen($str)
     {
         static $mbstring;
 
         // Cache expensive function_exists() calls.
-        if (!isset($mbstring)) {
+        if (! isset($mbstring)) {
             $mbstring = function_exists('mb_strwidth');
         }
 
@@ -822,18 +800,18 @@ class ConsoleTable
     /**
      * Returns part of a string.
      *
-     * @param string $string The string to be converted.
-     * @param integer $start The part's start position, zero based.
-     * @param integer $length The part's length.
+     * @param string $string the string to be converted
+     * @param int $start the part's start position, zero based
+     * @param int $length the part's length
      *
-     * @return string  The string's part.
+     * @return string the string's part
      */
-    function _substr($string, $start, $length = null)
+    public function _substr($string, $start, $length = null)
     {
         static $mbstring;
 
         // Cache expensive function_exists() calls.
-        if (!isset($mbstring)) {
+        if (! isset($mbstring)) {
             $mbstring = function_exists('mb_substr');
         }
 
@@ -842,7 +820,7 @@ class ConsoleTable
         }
         if ($mbstring) {
             $ret = @mb_substr($string, $start, $length, $this->_charset);
-            if (!empty($ret)) {
+            if (! empty($ret)) {
                 return $ret;
             }
         }
@@ -854,16 +832,16 @@ class ConsoleTable
      *
      * This method behaves exactly like str_pad but is multibyte safe.
      *
-     * @param string $input The string to be padded.
-     * @param integer $length The length of the resulting string.
+     * @param string $input the string to be padded
+     * @param int $length the length of the resulting string
      * @param string $pad The string to pad the input string with. Must
-     *                        be in the same charset like the input string.
+     *                    be in the same charset like the input string.
      * @param const $type The padding type. One of STR_PAD_LEFT,
-     *                        STR_PAD_RIGHT, or STR_PAD_BOTH.
+     *                    STR_PAD_RIGHT, or STR_PAD_BOTH.
      *
-     * @return string  The padded string.
+     * @return string the padded string
      */
-    function _strpad($input, $length, $pad = ' ', $type = STR_PAD_RIGHT)
+    public function _strpad($input, $length, $pad = ' ', $type = STR_PAD_RIGHT)
     {
         $mb_length = $this->_strlen($input);
         $sb_length = strlen($input);
@@ -882,27 +860,42 @@ class ConsoleTable
         switch ($type) {
             case STR_PAD_LEFT:
                 $left = $length - $mb_length;
-                $output = $this->_substr(str_repeat($pad, ceil($left / $pad_length)),
-                        0, $left, $this->_charset) . $input;
+                $output = $this->_substr(
+                    str_repeat($pad, ceil($left / $pad_length)),
+                    0,
+                    $left,
+                    $this->_charset
+                ) . $input;
                 break;
             case STR_PAD_BOTH:
                 $left = floor(($length - $mb_length) / 2);
                 $right = ceil(($length - $mb_length) / 2);
-                $output = $this->_substr(str_repeat($pad, ceil($left / $pad_length)),
-                        0, $left, $this->_charset) .
+                $output = $this->_substr(
+                    str_repeat($pad, ceil($left / $pad_length)),
+                    0,
+                    $left,
+                    $this->_charset
+                ) .
                     $input .
-                    $this->_substr(str_repeat($pad, ceil($right / $pad_length)),
-                        0, $right, $this->_charset);
+                    $this->_substr(
+                        str_repeat($pad, ceil($right / $pad_length)),
+                        0,
+                        $right,
+                        $this->_charset
+                    );
                 break;
             case STR_PAD_RIGHT:
                 $right = $length - $mb_length;
                 $output = $input .
-                    $this->_substr(str_repeat($pad, ceil($right / $pad_length)),
-                        0, $right, $this->_charset);
+                    $this->_substr(
+                        str_repeat($pad, ceil($right / $pad_length)),
+                        0,
+                        $right,
+                        $this->_charset
+                    );
                 break;
         }
 
         return $output;
     }
-
 }

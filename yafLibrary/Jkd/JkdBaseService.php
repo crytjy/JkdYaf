@@ -1,8 +1,11 @@
 <?php
 /**
- * JkdBaseService
+ * This file is part of JkdYaf.
  *
- * Class JkdBaseService
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
 namespace Jkd;
 

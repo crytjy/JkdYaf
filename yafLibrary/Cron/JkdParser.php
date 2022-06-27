@@ -1,5 +1,12 @@
 <?php
-
+/**
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
+ */
 namespace Cron;
 
 class JkdParser
@@ -19,21 +26,19 @@ class JkdParser
      *                              |    +----------- min (0 - 59)
      *                              +----------- second (0 - 59)
      * @param null|int $startTime
-     * @return []
      * @throws \Exception
+     * @return []
      */
     public function parse(string $crontabString)
     {
-        if (!$this->isValid($crontabString)) {
+        if (! $this->isValid($crontabString)) {
             throw new \Exception('Invalid cron string: ' . $crontabString);
         }
-        $date = $this->parseDate($crontabString);
-        return $date;
+        return $this->parseDate($crontabString);
     }
 
-
     /**
-     * 检查是否满足
+     * 检查是否满足.
      *
      * @param $startTime
      * @param $date
@@ -41,23 +46,22 @@ class JkdParser
      */
     public function check($startTime, $date)
     {
-        if (in_array((int)date('s', $startTime), $date['second'])
-            && in_array((int)date('i', $startTime), $date['minutes'])
-            && in_array((int)date('G', $startTime), $date['hours'])
-            && in_array((int)date('j', $startTime), $date['day'])
-            && in_array((int)date('w', $startTime), $date['week'])
-            && in_array((int)date('n', $startTime), $date['month'])
+        if (in_array((int) date('s', $startTime), $date['second'])
+            && in_array((int) date('i', $startTime), $date['minutes'])
+            && in_array((int) date('G', $startTime), $date['hours'])
+            && in_array((int) date('j', $startTime), $date['day'])
+            && in_array((int) date('w', $startTime), $date['week'])
+            && in_array((int) date('n', $startTime), $date['month'])
         ) {
             return true;
         }
         return false;
     }
 
-
     public function isValid(string $crontabString): bool
     {
-        if (!preg_match('/^((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)$/i', trim($crontabString))) {
-            if (!preg_match('/^((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)$/i', trim($crontabString))) {
+        if (! preg_match('/^((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)$/i', trim($crontabString))) {
+            if (! preg_match('/^((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)\s+((\*(\/[0-9]+)?)|[0-9\-\,\/]+)$/i', trim($crontabString))) {
                 return false;
             }
         }
@@ -85,17 +89,17 @@ class JkdParser
                     continue;
                 }
 
-                if (trim($value) === '' || !$this->between((int)$value, (int)($min > $start ? $min : $start), (int)$max)) {
+                if (trim($value) === '' || ! $this->between((int) $value, (int) ($min > $start ? $min : $start), (int) $max)) {
                     continue;
                 }
-                $result[] = (int)$value;
+                $result[] = (int) $value;
             }
         } elseif (strpos($string, '/') !== false) {
             $exploded = explode('/', $string);
             if (strpos($exploded[0], '-') !== false) {
                 [$nMin, $nMax] = explode('-', $exploded[0]);
-                $nMin > $min && $min = (int)$nMin;
-                $nMax < $max && $max = (int)$nMax;
+                $nMin > $min && $min = (int) $nMin;
+                $nMax < $max && $max = (int) $nMax;
             }
             // If the value of start is larger than the value of min, the value of start should equal with the value of min.
             $start < $min && $start = $min;
@@ -105,8 +109,8 @@ class JkdParser
             }
         } elseif (strpos($string, '-') !== false) {
             $result = array_merge($result, $this->parseSegment($string . '/1', $min, $max, $start));
-        } elseif ($this->between((int)$string, $min > $start ? $min : $start, $max)) {
-            $result[] = (int)$string;
+        } elseif ($this->between((int) $string, $min > $start ? $min : $start, $max)) {
+            $result[] = (int) $string;
         }
         return $result;
     }
@@ -133,7 +137,7 @@ class JkdParser
             ];
         } else {
             $date = [
-                'second' => [ 1 => 0 ],
+                'second' => [1 => 0],
                 'minutes' => $this->parseSegment($cron[0], 0, 59),
                 'hours' => $this->parseSegment($cron[1], 0, 23),
                 'day' => $this->parseSegment($cron[2], 1, 31),

@@ -1,8 +1,12 @@
 <?php
 /**
- * 错误控制器
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
 class ErrorController extends \Jkd\JkdBaseError
 {
-
 }

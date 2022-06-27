@@ -1,26 +1,29 @@
 <?php
 /**
- * mysql操作类
+ * This file is part of JkdYaf.
+ *
+ * @Product  JkdYaf
+ * @Github   https://github.com/crytjy/JkdYaf
+ * @Document https://jkdyaf.crytjy.com
+ * @Author   JKD
  */
-
 namespace Db;
-
-use Log\JkdLog;
 
 class MysqlHandle implements DbInterface
 {
+    public $_dbh;
 
     private static $_instances;
-    public $_dbh;
+
     private $_sth;
+
     private $_sql;
 
-    static public function getInstance()
+    public static function getInstance()
     {
     }
 
-
-    function halt($msg = '', $sql = '')
+    public function halt($msg = '', $sql = '')
     {
         $error_info = $this->_sth->errorInfo();
         $s = '<pre>';
@@ -28,56 +31,63 @@ class MysqlHandle implements DbInterface
         $s .= '<b>Errno:</b>' . $error_info[1] . '<br />';
         $s .= '<b>Sql:</b>' . $this->_sql;
 
-        JkdLog::error($s);
-        die();
+        \SeasLog::error('MysqlHandle:halt:' . $s);
+        exit();
     }
 
-
-    function execute($sql, $values = array())
+    public function execute($sql, $values = [])
     {
         $this->_sql = $sql;
+
+        $sqlLogStatus = checkIoStatus('sqlLogStatus');
+        if ($sqlLogStatus) {
+            $_sql_s = microtime(true);
+        }
+
         $this->_sth = $this->_dbh->prepare($sql);
         $bool = $this->_sth->execute($values);
 
-        if ('00000' !== $this->_sth->errorCode()) {
+        if ($sqlLogStatus) {
+            $_sql_e = microtime(true);
+        }
+
+        if ($this->_sth->errorCode() !== '00000') {
             $this->halt();
         }
 
         // 储存Sql操作记录
-        if (checkIoStatus('sqlLogStatus')) {
-            \Task\JkdTask::dispatch(\Job\JkdSqlLog::class, ['sqlStr' => $sql, 'values' => $values]);
+        if ($sqlLogStatus) {
+            \Task\JkdTask::dispatch(\Job\JkdSqlLog::class, ['runtime' => $_sql_e - $_sql_s, 'sqlStr' => $sql, 'values' => $values]);
         }
         return $bool;
     }
 
-
     /**
-     * 获取全部数据
+     * 获取全部数据.
      *
      * @param $sql
      * @param array $values
      * @param int $fetch_style
      * @return mixed
      */
-    function getAll($sql, $values = array(), $fetch_style = \PDO::FETCH_ASSOC)
+    public function getAll($sql, $values = [], $fetch_style = \PDO::FETCH_ASSOC)
     {
         $this->execute($sql, $values);
         return $this->_sth->fetchAll($fetch_style);
     }
 
-
     /**
-     * 获取指定字段
+     * 获取指定字段.
      *
      * @param $sql
      * @param array $params
      * @param int $column_number
      * @return array
      */
-    function getCol($sql, $params = array(), $column_number = 0)
+    public function getCol($sql, $params = [], $column_number = 0)
     {
-        $columns = array();
-        $results = array();
+        $columns = [];
+        $results = [];
         $this->execute($sql, $params);
         $results = $this->_sth->fetchAll(\PDO::FETCH_NUM);
         foreach ($results as $result) {
@@ -86,63 +96,61 @@ class MysqlHandle implements DbInterface
         return $columns;
     }
 
-
     /**
-     * 获取一条数据
+     * 获取一条数据.
      *
      * @param $sql
      * @param array $values
      * @param int $fetch_style
      * @return mixed
      */
-    function getRow($sql, $values = array(), $fetch_style = \PDO::FETCH_ASSOC)
+    public function getRow($sql, $values = [], $fetch_style = \PDO::FETCH_ASSOC)
     {
         $this->execute($sql, $values);
         return $this->_sth->fetch($fetch_style);
     }
 
-
     /**
-     * 获取单个字段数据
+     * 获取单个字段数据.
      *
      * @param $sql
      * @param array $values
      * @param int $column_number
      * @return mixed
      */
-    function getOne($sql, $values = array(), $column_number = 0)
+    public function getOne($sql, $values = [], $column_number = 0)
     {
         $this->execute($sql, $values);
         return $this->_sth->fetchColumn($column_number);
     }
 
-
     /**
-     * 新增
+     * 新增.
      *
      * @param string $table
      * @param array $data
      * @return bool|string
      */
-    function insert($table, $data)
+    public function insert($table, $data)
     {
         $fields = array_keys($data);
         $marks = array_fill(0, count($fields), '?');
 
-        $sql = "INSERT INTO $table (`" . implode('`,`', $fields) . "`) VALUES (" . implode(", ", $marks) . " )";
+        $sql = "INSERT INTO {$table} (`" . implode('`,`', $fields) . '`) VALUES (' . implode(', ', $marks) . ' )';
         $this->execute($sql, array_values($data));
         $lastInsertId = $this->_dbh->lastInsertId();
-        if ($lastInsertId)
+        if ($lastInsertId) {
             return $lastInsertId;
-        else
-            return true;
-    }
+        }
 
+        return true;
+    }
 
     /**
      * 处理事务
+     * @param mixed $sql
      */
-    function transaction($sql)
+    public function transaction($sql)
     {
         try {
             $this->_dbh->beginTransaction();
@@ -153,60 +161,55 @@ class MysqlHandle implements DbInterface
         }
     }
 
-
     /**
-     * 更新
+     * 更新.
      *
      * @param string $table
      * @param array $data
      * @param array $where
      * @return bool
      */
-    function update($table, $data, $where)
+    public function update($table, $data, $where)
     {
         $values = $bits = $wheres = [];
         foreach ($data as $k => $v) {
-            $bits[] = "`$k` = ?";
+            $bits[] = "`{$k}` = ?";
             $values[] = $v;
         }
 
         foreach ($where as $c => $v) {
-            $wheres[] = "$c = ?";
+            $wheres[] = "{$c} = ?";
             $values[] = $v;
         }
 
-        $sql = "UPDATE $table SET " . implode(', ', $bits) . ' WHERE ' . implode(' AND ', $wheres);
+        $sql = "UPDATE {$table} SET " . implode(', ', $bits) . ' WHERE ' . implode(' AND ', $wheres);
         return $this->execute($sql, $values);
     }
 
-
     /**
-     * 删除
+     * 删除.
      *
      * @param $table
      * @param $where
      * @return bool
      */
-    function delete($table, $where)
+    public function delete($table, $where)
     {
-        $values = $wheres = array();
+        $values = $wheres = [];
         foreach ($where as $key => $val) {
-            $wheres[] = "$key = ?";
+            $wheres[] = "{$key} = ?";
             $values[] = $val;
         }
 
-        $sql = "DELETE FROM $table WHERE " . implode(' AND ', $wheres);
+        $sql = "DELETE FROM {$table} WHERE " . implode(' AND ', $wheres);
         return $this->execute($sql, $values);
     }
 
-
     /**
-     * 关闭连接
+     * 关闭连接.
      */
-    function close()
+    public function close()
     {
-        unset($this->_instances);
-        unset($this->_dbh);
+        unset($this->_instances, $this->_dbh);
     }
-
 }
